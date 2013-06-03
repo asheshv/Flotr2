@@ -7471,11 +7471,12 @@ Flotr.addPlugin('spreadsheet', {
     var s = this.series,
         datagrid = this.spreadsheet.loadDataGrid(),
         colgroup = ['<colgroup><col />'],
-        buttonDownload, buttonSelect, t;
+        buttonDownload, buttonSelect, t,
+		xmode = this.options.xaxis.mode;
     
     // First row : series' labels
     var html = ['<table class="flotr-datagrid"><tr class="first-row">'];
-    html.push('<th>&nbsp;</th>');
+    html.push('<th></th>');
     _.each(s, function(serie,i){
       html.push('<th scope="col">'+(serie.label || String.fromCharCode(65+i))+'</th>');
       colgroup.push('<col />');
@@ -7493,13 +7494,14 @@ Flotr.addPlugin('spreadsheet', {
         if (i === 0) {
           tag = 'th';
           var label = getRowLabel.call(this, content);
-          if (label) content = label;
+          if (label) content = (xmode === 'time' ? f.toLocaleString() : h);
         }
 
         html.push('<'+tag+(tag=='th'?' scope="row"':'')+'>'+content+'</'+tag+'>');
       }, this);
       html.push('</tr>');
     }, this);
+	html.push('</table>');
     colgroup.push('</colgroup>');
     t = D.node(html.join(''));
 
