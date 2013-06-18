@@ -154,6 +154,7 @@ Axis.prototype = {
       axis.max = axis.tickSize * Math.ceil(axis.max / axis.tickSize);
       axis.max = axis.tickSize * 0.01 + axis.max;
     }
+    axis.max = axis.tickSize * 0.02 + axis.max;
 
     if (axis.min == axis.max) axis.max = axis.min + 1;
   },
