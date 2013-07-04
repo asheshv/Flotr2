@@ -146,9 +146,11 @@ Flotr.addPlugin('legend', {
         if(fragments.length > 0){
           var table = '<table style="font-size:smaller;color:' + options.grid.color + '">' + fragments.join('') + '</table>';
           if(legend.container){
-            table = D.node(table);
-            this.legend.markup = table;
-            D.insert(legend.container, table);
+            // table = D.node(table);
+            // this.legend.markup = table;
+            // D.insert(legend.container, table);
+            // ASHESH: Using jquery to append the legend table in the container
+            $(legend.container).html(table);
           }
           else {
             var styles = {position: 'absolute', 'zIndex': '2', 'border' : '1px solid ' + legend.labelBoxBorderColor};
