@@ -2305,7 +2305,7 @@ Flotr.defaultOptions = {
   mouse: {
     track: false,          // => true to track the mouse, no tracking otherwise
     trackAll: false,
-    position: 'se',        // => position of the value box (default south-east)
+    position: 'se',        // => position of the value box (default south-east).  False disables.
     relative: false,       // => next to the mouse cursor
     trackFormatter: Flotr.defaultTrackFormatter, // => formats the values in the value box
     margin: 5,             // => margin in pixels of the valuebox
@@ -6603,6 +6603,9 @@ Flotr.addPlugin('hit', {
     }
 
     // Positioning
+    if (!p) {
+      return;
+    }
     size = D.size(mouseTrack);
     if (container) {
       offset = D.position(this.el);
@@ -7316,11 +7319,16 @@ Flotr.addPlugin('legend', {
         if(fragments.length > 0){
           var table = '<table style="font-size:smaller;color:' + options.grid.color + '">' + fragments.join('') + '</table>';
           if(legend.container){
-            // table = D.node(table);
-            // this.legend.markup = table;
-            // D.insert(legend.container, table);
             // ASHESH: Using jquery to append the legend table in the container
-            $(legend.container).html(table);
+            // (if available)
+            if (typeof jQuery!= 'undefined') {
+              jQuery(legend.container).html(table);
+            }
+            else {
+              table = D.node(table);
+              this.legend.markup = table;
+              D.insert(legend.container, table);
+            }
           }
           else {
             var styles = {position: 'absolute', 'zIndex': '2', 'border' : '1px solid ' + legend.labelBoxBorderColor};
