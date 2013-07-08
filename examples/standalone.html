@@ -13,30 +13,43 @@
     </style>
   </head>
   <body>
+    <div id="test"></div>
     <div id="container"></div>
     <!--[if IE]>
     <script type="text/javascript" src="path/to/flashcanvas.js"></script>
     <![endif]-->
-    <script type="text/javascript" src="../flotr2.min.js"></script>
+    <script type="text/javascript" src="../flotr2.js"></script>
     <script type="text/javascript">
       (function () {
         var
           container = document.getElementById('container'),
-          data = [],
+          d1 = [],
+          d2 = [],
+          labels = ['sin', 'cos'],
           graph, i;
 
         // Sample the sine function
         for (i = 0; i < 4 * Math.PI; i += 0.2) {
-          data.push([i, Math.sin(i)]);
+          d1.push([i, Math.sin(i)]);
         }
 
+        // Sample the sine function
+        for (i = 0; i < 4 * Math.PI; i += 0.2) {
+          d2.push([i, Math.cos(i)]);
+        }
+        var opts = {
+          legend: {show: true, container: document.getElementById('test')},
+          yaxis: {
+            min: -1.5,
+            max: 1.5
+          },
+          lines: { show: true },
+          points : { show: true }
+        };
+
         // Draw Graph
-        graph = Flotr.draw(container, [ data ], {
-          yaxis : {
-            max : 2,
-            min : -2
-          }
-        });
+        graph = Flotr.draw(container, [ {data: d1, label: 'sin'}, {data: d2, label: 'cos'} ], opts);
+
       })();
     </script>
   </body>
