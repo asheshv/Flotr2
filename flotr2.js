@@ -5915,8 +5915,8 @@ Flotr.addType('separators', {
   options: {
     show: false,           // => setting to true will show lines, false will hide
     lineWidth: 2,          // => line width in pixels
-	yaxis: null,
-    xaxis: null,
+	yval: null,
+    xval: null,
     xcolor: null,
     ycolor: null
   },
@@ -5952,9 +5952,9 @@ Flotr.addType('separators', {
       zero      = yScale(0),
       v, i;
 
-    if (options.xaxis !== null)
+    if (options.xval !== null)
     {
-      v = xScale(options.xaxis);
+      v = xScale(options.xval);
       if (v >= 0 && v <= width)
       {
           context.strokeStyle = options.xcolor || options.color;
@@ -5965,9 +5965,9 @@ Flotr.addType('separators', {
           context.closePath();
       }
     }
-    if (options.yaxis !== null)
+    if (options.yval !== null)
     {
-      v = yScale(options.yaxis);
+      v = yScale(options.yval);
       if (v >= 0 && v <= height)
       {
           context.strokeStyle = options.ycolor || options.color;
