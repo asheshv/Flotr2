@@ -44,11 +44,13 @@
             max: 1.5
           },
           lines: { show: true },
-          points : { show: true }
+          separators: { show: true, xaxis: 5, yaxis: 0.4, xcolor: '#FF0099', ycolor: '#00FF00'},
+          points : { show: true },
+          mouse : { track: true, trackAll: true }
         };
 
         // Draw Graph
-        graph = Flotr.draw(container, [ {data: d1, label: 'sin'}, {data: d2, label: 'cos'} ], opts);
+        graph = Flotr.draw(container, [ {hide: false, data: d1, label: 'sin'}, {data: d2, label: 'cos'}], opts);
 
       })();
     </script>

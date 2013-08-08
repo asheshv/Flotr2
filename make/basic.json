@@ -16,6 +16,7 @@
       "./js/types/bars.js",
       "./js/types/markers.js",
       "./js/types/points.js",
+      "./js/types/separators.js",
       "./js/plugins/grid.js",
       "./js/plugins/labels.js",
       "./js/plugins/legend.js",

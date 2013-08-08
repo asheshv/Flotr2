@@ -5425,11 +5425,9 @@ Flotr.addType('pie', {
   draw : function (options) {
 
     // TODO 3D charts what?
-
     var
       data          = options.data,
       context       = options.context,
-      canvas        = context.canvas,
       lineWidth     = options.lineWidth,
       shadowSize    = options.shadowSize,
       sizeRatio     = options.sizeRatio,
@@ -5439,7 +5437,7 @@ Flotr.addType('pie', {
       color         = options.color,
       fill          = options.fill,
       fillStyle     = options.fillStyle,
-      radius        = Math.min(canvas.width, canvas.height) * sizeRatio / 2,
+      radius        = Math.min(width, height) * sizeRatio / 2,
       value         = data[0][1],
       html          = [],
       vScale        = 1,//Math.cos(series.pie.viewAngle);
@@ -5513,7 +5511,7 @@ Flotr.addType('pie', {
     this.startAngle = endAngle;
     this.slices = this.slices || [];
     this.slices.push({
-      radius : Math.min(canvas.width, canvas.height) * sizeRatio / 2,
+      radius : radius,
       x : x,
       y : y,
       explode : explode,
@@ -5910,6 +5908,77 @@ Flotr.addType('timeline', {
       ya.max = ya.datamax + w;
   }
 
+});
+
+/** Separators **/
+Flotr.addType('separators', {
+  options: {
+    show: false,           // => setting to true will show lines, false will hide
+    lineWidth: 2,          // => line width in pixels
+	yaxis: null,
+    xaxis: null,
+    xcolor: null,
+    ycolor: null
+  },
+
+  /**
+   * @param {Object} options
+   */
+  draw : function (options) {
+
+    var
+      context     = options.context,
+      lineWidth   = options.lineWidth,
+      shadowSize  = options.shadowSize,
+      offset;
+
+    context.save();
+    context.lineJoin = 'round';
+    context.lineWidth = lineWidth;
+
+    this.plot(options);
+
+    context.restore();
+  },
+
+  plot : function (options) {
+
+    var
+      context   = options.context,
+      width     = options.width,
+      height    = options.height,
+      xScale    = options.xScale,
+      yScale    = options.yScale,
+      zero      = yScale(0),
+      v, i;
+
+    if (options.xaxis !== null)
+    {
+      v = xScale(options.xaxis);
+      if (v >= 0 && v <= width)
+      {
+          context.strokeStyle = options.xcolor || options.color;
+          context.beginPath();
+          context.moveTo(v, 0);
+          context.lineTo(v, height);
+          context.stroke();
+          context.closePath();
+      }
+    }
+    if (options.yaxis !== null)
+    {
+      v = yScale(options.yaxis);
+      if (v >= 0 && v <= height)
+      {
+          context.strokeStyle = options.ycolor || options.color;
+          context.beginPath();
+          context.moveTo(0, v);
+          context.lineTo(width, v);
+          context.stroke();
+          context.closePath();
+      }
+    }
+  }
 });
 
 (function () {
@@ -6514,6 +6583,8 @@ Flotr.addPlugin('hit', {
     for (i = 0; i < series.length; i++) {
 
       serie = series[i];
+      if (serie.hide === true)
+        continue;
       data = serie.data;
       mouseX = serie.xaxis.p2d(relX);
       mouseY = serie.yaxis.p2d(relY);

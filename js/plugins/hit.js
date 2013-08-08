@@ -237,6 +237,8 @@ Flotr.addPlugin('hit', {
     for (i = 0; i < series.length; i++) {
 
       serie = series[i];
+      if (serie.hide === true)
+        continue;
       data = serie.data;
       mouseX = serie.xaxis.p2d(relX);
       mouseY = serie.yaxis.p2d(relY);
