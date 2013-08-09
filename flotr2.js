@@ -5910,77 +5910,6 @@ Flotr.addType('timeline', {
 
 });
 
-/** Separators **/
-Flotr.addType('separators', {
-  options: {
-    show: false,           // => setting to true will show lines, false will hide
-    lineWidth: 2,          // => line width in pixels
-	yval: null,
-    xval: null,
-    xcolor: null,
-    ycolor: null
-  },
-
-  /**
-   * @param {Object} options
-   */
-  draw : function (options) {
-
-    var
-      context     = options.context,
-      lineWidth   = options.lineWidth,
-      shadowSize  = options.shadowSize,
-      offset;
-
-    context.save();
-    context.lineJoin = 'round';
-    context.lineWidth = lineWidth;
-
-    this.plot(options);
-
-    context.restore();
-  },
-
-  plot : function (options) {
-
-    var
-      context   = options.context,
-      width     = options.width,
-      height    = options.height,
-      xScale    = options.xScale,
-      yScale    = options.yScale,
-      zero      = yScale(0),
-      v, i;
-
-    if (options.xval !== null)
-    {
-      v = xScale(options.xval);
-      if (v >= 0 && v <= width)
-      {
-          context.strokeStyle = options.xcolor || options.color;
-          context.beginPath();
-          context.moveTo(v, 0);
-          context.lineTo(v, height);
-          context.stroke();
-          context.closePath();
-      }
-    }
-    if (options.yval !== null)
-    {
-      v = yScale(options.yval);
-      if (v >= 0 && v <= height)
-      {
-          context.strokeStyle = options.ycolor || options.color;
-          context.beginPath();
-          context.moveTo(0, v);
-          context.lineTo(width, v);
-          context.stroke();
-          context.closePath();
-      }
-    }
-  }
-});
-
 (function () {
 
 var D = Flotr.DOM;
@@ -7567,6 +7496,103 @@ Flotr.addPlugin('selectable_legend', {
 	}
 });
 }
+})();
+
+/** Separators **/
+(function () {
+
+Flotr.addPlugin('separators', {
+	options: {
+		show: false, // => setting to true will show lines, false will hide
+		lineWidth: 2, // => line width in pixels
+		yval: null,
+		xval: null,
+		xcolor: null,
+		xfill: null,
+		xfillopacity: 0.05,
+		ycolor: null,
+		yfill: null,
+		yfillopacity: 0.05 
+	},
+	callbacks: {
+		'flotr:afterdraw': function() { this.separators.insertSeparator(); }
+	},
+	insertSeparator: function(){
+
+		if(!this.options.separators.show)
+			return;
+
+		var opt = this.options,
+			ctx = this.ctx,
+			w = this.plotWidth,
+			h = this.plotHeight,
+			of = this.plotOffset,
+			o = this.options.separators,
+			xS, yS, zero, v, i, x1, x2, y1, y2;
+		if (this.series) {
+			for (i = 0; i < this.series.length; i++)
+				if (this.series[i].hide !== true && this.series[i].xaxis && this.series[i].xaxis.d2p && this.series[i].yaxis.d2p) {
+					xS = this.series[i].xaxis.d2p;
+					yS = this.series[i].yaxis.d2p;
+					break;
+				}
+			if (!xS)
+				return;
+		}
+		else
+			return;
+
+		ctx.save();
+		ctx.lineJoin = 'round';
+		ctx.lineWidth = opt.lineWidth;
+
+		if (o.xval)
+		{
+			v = xS(o.xval);
+			if (v >= 0 && v <= w)
+			{
+				x1 = v + of.left; y1 = of.top; y2 = h + of.top;
+				ctx.strokeStyle = o.xcolor || opt.color;
+				ctx.beginPath();
+				ctx.moveTo(x1, y1);
+				ctx.lineTo(x1, y2);
+				ctx.stroke();
+				ctx.closePath();
+				if (o.xfill && o.xfillopacity) {
+					ctx.fillStyle = this.processColor(o.xfill, {opacity: o.xfillopacity});
+					ctx.moveTo(of.left, y1);
+					ctx.lineTo(x1, y1);
+					ctx.lineTo(x1, y2);
+					ctx.lineTo(of.left, y2);
+					ctx.fill();
+				}
+			}
+		}
+		if (o.yval)
+		{
+			v = yS(o.yval);
+			if (v >= 0 && v <= h)
+			{
+				x1 = of.left; x2 = w + of.left; y1 = v + of.top; y2 = of.top + h;
+				ctx.strokeStyle = o.ycolor || opt.color;
+				ctx.beginPath();
+				ctx.moveTo(x1, y1);
+				ctx.lineTo(x2, y1);
+				ctx.stroke();
+				ctx.closePath();
+				if (o.yfill && o.yfillopacity) {
+					ctx.fillStyle = this.processColor(o.yfill, {opacity: o.yfillopacity});
+					ctx.moveTo(x1, y2);
+					ctx.lineTo(x1, y1);
+					ctx.lineTo(x2, y1);
+					ctx.lineTo(x2, y2);
+					ctx.fill();
+				}
+			}
+		}
+		ctx.restore();
+	}
+});
 })();
 
 /** Spreadsheet **/
