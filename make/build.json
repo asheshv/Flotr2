@@ -39,6 +39,7 @@
       "./js/plugins/selection.js",
       "./js/plugins/labels.js",
       "./js/plugins/legend.js",
+      "./js/plugins/selectable_legend.js",
       "./js/plugins/spreadsheet.js",
       "./js/plugins/titles.js"
     ],

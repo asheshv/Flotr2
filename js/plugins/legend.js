@@ -147,7 +147,7 @@ Flotr.addPlugin('legend', {
           var table = '<table style="font-size:smaller;color:' + options.grid.color + '">' + fragments.join('') + '</table>';
           if(legend.container){
             // ASHESH: Using jquery to append the legend table in the container
-            // (if available)
+            // (if available - this allows us to use it on IE 8 and above)
             if (typeof jQuery!= 'undefined') {
               jQuery(legend.container).html(table);
             }
