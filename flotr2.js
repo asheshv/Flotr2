@@ -6395,7 +6395,7 @@ Flotr.addPlugin('hit', {
 
     function e(s, index) {
       _.each(_.keys(flotr.graphTypes), function (type) {
-        if (s[type] && s[type].show && this[type][method]) {
+        if (s[type] && s[type].show && !s.hide && this[type][method]) {
           options = this.getOptions(s, type);
 
           options.fill = !!s.mouse.fillColor;
@@ -6588,6 +6588,8 @@ Flotr.addPlugin('hit', {
       data = serie.data;
       mouseX = serie.xaxis.p2d(relX);
       mouseY = serie.yaxis.p2d(relY);
+
+      if (serie.hide) continue;
 
       for (j = data.length; j--;) {
 
@@ -7531,9 +7533,8 @@ Flotr.addPlugin('selectable_legend', {
 				
 				if (legend.callback) {
 					fragments.push(
-						'<td><input type="checkbox" class="flotr-legend-check-box" id="flotr_scb_',
-						(legend.id ? legend.id : ''), i, '" data-id="', i, '" data-container="',
-						(legend.id ? legend.id : ''), '"');
+						'<td><input type="checkbox" class="flotr-legend-check-box" data-id="',
+						i, '" data-container="', (legend.id ? legend.id : ''), '"');
 					if (series[i].hide !== true)
 						fragments.push(' checked="checked"');
 					fragments.push('/></td>');
