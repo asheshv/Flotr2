@@ -10,9 +10,11 @@ Flotr.addPlugin('separators', {
 		xcolor: null,
 		xfill: null,
 		xfillopacity: 0.05,
+		xorientation: 0,
 		ycolor: null,
 		yfill: null,
-		yfillopacity: 0.05 
+		yfillopacity: 0.05,
+		yorientation: 0
 	},
 	callbacks: {
 		'flotr:afterdraw': function() { this.separators.insertSeparator(); }
@@ -41,11 +43,9 @@ Flotr.addPlugin('separators', {
 		}
 		else
 			return;
-
 		ctx.save();
 		ctx.lineJoin = 'round';
 		ctx.lineWidth = opt.lineWidth;
-
 		if (o.xval)
 		{
 			v = xS(o.xval);
@@ -60,10 +60,14 @@ Flotr.addPlugin('separators', {
 				ctx.closePath();
 				if (o.xfill && o.xfillopacity) {
 					ctx.fillStyle = this.processColor(o.xfill, {opacity: o.xfillopacity});
-					ctx.moveTo(of.left, y1);
+					if (o.xorientation === 0)
+						x2 = of.left;
+					else
+						x2 = w + of.left;
+					ctx.moveTo(x2, y1);
 					ctx.lineTo(x1, y1);
 					ctx.lineTo(x1, y2);
-					ctx.lineTo(of.left, y2);
+					ctx.lineTo(x2, y2);
 					ctx.fill();
 				}
 			}
@@ -73,7 +77,7 @@ Flotr.addPlugin('separators', {
 			v = yS(o.yval);
 			if (v >= 0 && v <= h)
 			{
-				x1 = of.left; x2 = w + of.left; y1 = v + of.top; y2 = of.top + h;
+				x1 = of.left; x2 = w + of.left; y1 = v + of.top;
 				ctx.strokeStyle = o.ycolor || opt.color;
 				ctx.beginPath();
 				ctx.moveTo(x1, y1);
@@ -82,6 +86,10 @@ Flotr.addPlugin('separators', {
 				ctx.closePath();
 				if (o.yfill && o.yfillopacity) {
 					ctx.fillStyle = this.processColor(o.yfill, {opacity: o.yfillopacity});
+					if (o.yorientation === 0)
+						y2 = of.top + h;
+					else
+						y2 = of.top;
 					ctx.moveTo(x1, y2);
 					ctx.lineTo(x1, y1);
 					ctx.lineTo(x2, y1);
