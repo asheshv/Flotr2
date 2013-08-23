@@ -11,6 +11,7 @@ var
   _ = Flotr._;
 
 Flotr.defaultPieLabelFormatter = function (total, value) {
+  if (total === 0) return 'NaN%';
   return (100 * value / total).toFixed(2)+'%';
 };
 
@@ -50,7 +51,7 @@ Flotr.addType('pie', {
       value         = data[0][1],
       html          = [],
       vScale        = 1,//Math.cos(series.pie.viewAngle);
-      measure       = Math.PI * 2 * value / this.total,
+      measure       = this.total ? (Math.PI * 2 * value / this.total) : 0,
       startAngle    = this.startAngle || (2 * Math.PI * options.startAngle), // TODO: this initial startAngle is already in radians (fixing will be test-unstable)
       endAngle      = startAngle + measure,
       bisection     = startAngle + measure / 2,
@@ -71,6 +72,19 @@ Flotr.addType('pie', {
     x = Math.cos(bisection) * explode;
     y = Math.sin(bisection) * explode;
 
+    style = {
+      size : options.fontSize * 1.2,
+      color : options.fontColor,
+      weight : 1.5
+    };
+
+    if (!this.total) {
+      style.textAlign = textAlign;
+      style.textBaseline = textBaseline;
+      Flotr.drawText(context, 'NaN%', 0, 0, style);
+      context.restore();
+	  return;
+	}
     // Shadows
     if (shadowSize > 0) {
       this.plotSlice(x + shadowSize, y + shadowSize, radius, startAngle, endAngle, context);
@@ -88,12 +102,6 @@ Flotr.addType('pie', {
     context.lineWidth = lineWidth;
     context.strokeStyle = color;
     context.stroke();
-
-    style = {
-      size : options.fontSize * 1.2,
-      color : options.fontColor,
-      weight : 1.5
-    };
 
     if (label) {
       if (options.htmlText || !options.textEnabled) {
@@ -116,17 +124,19 @@ Flotr.addType('pie', {
     
     context.restore();
 
-    // New start angle
-    this.startAngle = endAngle;
-    this.slices = this.slices || [];
-    this.slices.push({
-      radius : radius,
-      x : x,
-      y : y,
-      explode : explode,
-      start : startAngle,
-      end : endAngle
-    });
+    if (this.total) {
+      // New start angle
+      this.startAngle = endAngle;
+      this.slices = this.slices || [];
+      this.slices.push({
+        radius : radius,
+        x : x,
+        y : y,
+        explode : explode,
+        start : startAngle,
+        end : endAngle
+      });
+    }
   },
   plotSlice : function (x, y, radius, startAngle, endAngle, context) {
     context.beginPath();
@@ -136,7 +146,8 @@ Flotr.addType('pie', {
     context.closePath();
   },
   hit : function (options) {
-
+    if (!this.total)
+		return;
     var
       data      = options.data[0],
       args      = options.args,
@@ -175,7 +186,7 @@ Flotr.addType('pie', {
          n.eAngle = end;
          n.index = 0;
          n.seriesIndex = index;
-         n.fraction = data[1] / this.total;
+         n.fraction = this.total ? (data[1] / this.total) : NULL;
       }
     }
   },
