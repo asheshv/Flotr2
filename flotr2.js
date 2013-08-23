@@ -5472,7 +5472,7 @@ Flotr.addType('pie', {
     if (!this.total) {
       style.textAlign = textAlign;
       style.textBaseline = textBaseline;
-      Flotr.drawText(context, '0%', 0, 0, style);
+      Flotr.drawText(context, 'NaN%', 0, 0, style);
       context.restore();
 	  return;
 	}
