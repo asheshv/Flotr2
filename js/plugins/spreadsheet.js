@@ -138,7 +138,7 @@ Flotr.addPlugin('spreadsheet', {
         if (i === 0) {
           tag = 'th';
           var label = getRowLabel.call(this, content);
-          if (label) content = (xmode === 'time' ? f.toLocaleString() : h);
+          if (label) content = (xmode === 'time' ? value.toLocaleString() : h);
         }
 
         html.push('<'+tag+(tag=='th'?' scope="row"':'')+'>'+content+'</'+tag+'>');

@@ -83,8 +83,8 @@ Flotr.addType('pie', {
       style.textBaseline = textBaseline;
       Flotr.drawText(context, 'NaN%', 0, 0, style);
       context.restore();
-	  return;
-	}
+      return;
+    }
     // Shadows
     if (shadowSize > 0) {
       this.plotSlice(x + shadowSize, y + shadowSize, radius, startAngle, endAngle, context);
@@ -147,7 +147,7 @@ Flotr.addType('pie', {
   },
   hit : function (options) {
     if (!this.total)
-		return;
+      return;
     var
       data      = options.data[0],
       args      = options.args,
