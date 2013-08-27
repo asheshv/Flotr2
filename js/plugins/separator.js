@@ -17,7 +17,13 @@ Flotr.addPlugin('separators', {
 		yorientation: 0
 	},
 	callbacks: {
-		'flotr:afterdraw': function() { this.separators.insertSeparator(); }
+		'flotr:afterdraw': function() {
+			try {
+				this.separators.insertSeparator();
+			} catch (e) {
+				// Do nothing - we couldn't generate the separator
+			}
+		}
 	},
 	insertSeparator: function(){
 
@@ -45,7 +51,7 @@ Flotr.addPlugin('separators', {
 			return;
 		ctx.save();
 		ctx.lineJoin = 'round';
-		ctx.lineWidth = opt.lineWidth;
+		ctx.lineWidth = o.lineWidth;
 		if (o.xval)
 		{
 			v = xS(o.xval);
