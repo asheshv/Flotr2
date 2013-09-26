@@ -7,6 +7,8 @@ Flotr.addPlugin('separators', {
 		lineWidth: 2, // => line width in pixels
 		yval: null,
 		xval: null,
+		xlabel: null,
+		ylabel: null,
 		xcolor: null,
 		xfill: null,
 		xfillopacity: 0.05,
@@ -36,7 +38,7 @@ Flotr.addPlugin('separators', {
 			h = this.plotHeight,
 			of = this.plotOffset,
 			o = this.options.separators,
-			xS, yS, zero, v, i, x1, x2, y1, y2;
+			xS, yS, zero, v, i, x1, x2, y1, y2, style;
 		if (this.series) {
 			for (i = 0; i < this.series.length; i++)
 				if (this.series[i].hide !== true && this.series[i].xaxis && this.series[i].xaxis.d2p && this.series[i].yaxis.d2p) {
@@ -76,6 +78,24 @@ Flotr.addPlugin('separators', {
 					ctx.lineTo(x2, y2);
 					ctx.fill();
 				}
+				if (o.xlabel) {
+					style = {
+						size: opt.fontSize,
+						color: o.xcolor || opt.color,
+						textAlign: 'center'
+					};
+					style.size *= 1.2;
+					style.textAlign = "center";
+					style.textBaseline = 'middle';
+					style.angle = Flotr.toRad(90);
+
+					Flotr.drawText(
+						ctx, o.xlabel,
+						x1 + 8,
+						(y1 + y2 + o.xlabel.length) / 2,
+						style);
+					style = null;
+				}
 			}
 		}
 		if (o.yval)
@@ -101,6 +121,24 @@ Flotr.addPlugin('separators', {
 					ctx.lineTo(x2, y1);
 					ctx.lineTo(x2, y2);
 					ctx.fill();
+				}
+				if (o.ylabel) {
+					style = {
+						size: opt.fontSize,
+						color: o.ycolor || opt.color,
+						textAlign: 'center'
+					};
+					style.size *= 1.2;
+					style.textAlign = "center";
+					style.textBaseline = 'middle';
+					style.angle = 0;
+
+					Flotr.drawText(
+						ctx, o.ylabel,
+						(x1 + x2 + o.ylabel.length) / 2,
+						y1 + 8,
+						style);
+					style = null;
 				}
 			}
 		}
