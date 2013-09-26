@@ -354,7 +354,7 @@ Flotr.defaultOptions = {
   mouse: {
     track: false,          // => true to track the mouse, no tracking otherwise
     trackAll: false,
-    position: 'se',        // => position of the value box (default south-east)
+    position: 'se',        // => position of the value box (default south-east).  False disables.
     relative: false,       // => next to the mouse cursor
     trackFormatter: Flotr.defaultTrackFormatter, // => formats the values in the value box
     margin: 5,             // => margin in pixels of the valuebox
@@ -1155,7 +1155,12 @@ Graph.prototype = {
       'font-size:1em;font-weight:bold;',
       'flotr-title'
     );
-    this.titleHeight = dim.height;
+	// We will set the minimun title Height to 5.
+	// So that - it will show the y-axis labels properly
+	if (options.title)
+		this.titleHeight = dim.height;
+	else
+		this.titleHeight = 5;
 
     // Subtitle height
     dim = T.dimensions(
@@ -1906,13 +1911,16 @@ Axis.prototype = {
       // Make sure we don't go below zero if all values are positive.
       if(axis.min < 0 && axis.datamin >= 0) axis.min = 0;
       axis.min = axis.tickSize * Math.floor(axis.min / axis.tickSize);
+      axis.min = axis.min - axis.tickSize * 0.01;
     }
     
     if(o.max === null && o.autoscale){
       axis.max += axis.tickSize * margin;
       if(axis.max > 0 && axis.datamax <= 0 && axis.datamax != axis.datamin) axis.max = 0;        
       axis.max = axis.tickSize * Math.ceil(axis.max / axis.tickSize);
+      axis.max = axis.tickSize * 0.01 + axis.max;
     }
+    axis.max = axis.tickSize * 0.02 + axis.max;
 
     if (axis.min == axis.max) axis.max = axis.min + 1;
   },
@@ -3443,6 +3451,7 @@ var
   _ = Flotr._;
 
 Flotr.defaultPieLabelFormatter = function (total, value) {
+  if (total === 0) return 'NaN%';
   return (100 * value / total).toFixed(2)+'%';
 };
 
@@ -3466,11 +3475,9 @@ Flotr.addType('pie', {
   draw : function (options) {
 
     // TODO 3D charts what?
-
     var
       data          = options.data,
       context       = options.context,
-      canvas        = context.canvas,
       lineWidth     = options.lineWidth,
       shadowSize    = options.shadowSize,
       sizeRatio     = options.sizeRatio,
@@ -3480,11 +3487,11 @@ Flotr.addType('pie', {
       color         = options.color,
       fill          = options.fill,
       fillStyle     = options.fillStyle,
-      radius        = Math.min(canvas.width, canvas.height) * sizeRatio / 2,
+      radius        = Math.min(width, height) * sizeRatio / 2,
       value         = data[0][1],
       html          = [],
       vScale        = 1,//Math.cos(series.pie.viewAngle);
-      measure       = Math.PI * 2 * value / this.total,
+      measure       = this.total ? (Math.PI * 2 * value / this.total) : 0,
       startAngle    = this.startAngle || (2 * Math.PI * options.startAngle), // TODO: this initial startAngle is already in radians (fixing will be test-unstable)
       endAngle      = startAngle + measure,
       bisection     = startAngle + measure / 2,
@@ -3505,6 +3512,19 @@ Flotr.addType('pie', {
     x = Math.cos(bisection) * explode;
     y = Math.sin(bisection) * explode;
 
+    style = {
+      size : options.fontSize * 1.2,
+      color : options.fontColor,
+      weight : 1.5
+    };
+
+    if (!this.total) {
+      style.textAlign = textAlign;
+      style.textBaseline = textBaseline;
+      Flotr.drawText(context, 'NaN%', 0, 0, style);
+      context.restore();
+      return;
+    }
     // Shadows
     if (shadowSize > 0) {
       this.plotSlice(x + shadowSize, y + shadowSize, radius, startAngle, endAngle, context);
@@ -3522,12 +3542,6 @@ Flotr.addType('pie', {
     context.lineWidth = lineWidth;
     context.strokeStyle = color;
     context.stroke();
-
-    style = {
-      size : options.fontSize * 1.2,
-      color : options.fontColor,
-      weight : 1.5
-    };
 
     if (label) {
       if (options.htmlText || !options.textEnabled) {
@@ -3550,17 +3564,19 @@ Flotr.addType('pie', {
     
     context.restore();
 
-    // New start angle
-    this.startAngle = endAngle;
-    this.slices = this.slices || [];
-    this.slices.push({
-      radius : Math.min(canvas.width, canvas.height) * sizeRatio / 2,
-      x : x,
-      y : y,
-      explode : explode,
-      start : startAngle,
-      end : endAngle
-    });
+    if (this.total) {
+      // New start angle
+      this.startAngle = endAngle;
+      this.slices = this.slices || [];
+      this.slices.push({
+        radius : radius,
+        x : x,
+        y : y,
+        explode : explode,
+        start : startAngle,
+        end : endAngle
+      });
+    }
   },
   plotSlice : function (x, y, radius, startAngle, endAngle, context) {
     context.beginPath();
@@ -3570,7 +3586,8 @@ Flotr.addType('pie', {
     context.closePath();
   },
   hit : function (options) {
-
+    if (!this.total)
+      return;
     var
       data      = options.data[0],
       args      = options.args,
@@ -3609,7 +3626,7 @@ Flotr.addType('pie', {
          n.eAngle = end;
          n.index = 0;
          n.seriesIndex = index;
-         n.fraction = data[1] / this.total;
+         n.fraction = this.total ? (data[1] / this.total) : NULL;
       }
     }
   },
@@ -4367,7 +4384,7 @@ Flotr.addPlugin('hit', {
 
     function e(s, index) {
       _.each(_.keys(flotr.graphTypes), function (type) {
-        if (s[type] && s[type].show && this[type][method]) {
+        if (s[type] && s[type].show && !s.hide && this[type][method]) {
           options = this.getOptions(s, type);
 
           options.fill = !!s.mouse.fillColor;
@@ -4555,9 +4572,13 @@ Flotr.addPlugin('hit', {
     for (i = 0; i < series.length; i++) {
 
       serie = series[i];
+      if (serie.hide === true)
+        continue;
       data = serie.data;
       mouseX = serie.xaxis.p2d(relX);
       mouseY = serie.yaxis.p2d(relY);
+
+      if (serie.hide) continue;
 
       for (j = data.length; j--;) {
 
@@ -4644,6 +4665,9 @@ Flotr.addPlugin('hit', {
     }
 
     // Positioning
+    if (!p) {
+      return;
+    }
     size = D.size(mouseTrack);
     if (container) {
       offset = D.position(this.el);
@@ -5357,9 +5381,16 @@ Flotr.addPlugin('legend', {
         if(fragments.length > 0){
           var table = '<table style="font-size:smaller;color:' + options.grid.color + '">' + fragments.join('') + '</table>';
           if(legend.container){
-            table = D.node(table);
-            this.legend.markup = table;
-            D.insert(legend.container, table);
+            // ASHESH: Using jquery to append the legend table in the container
+            // (if available - this allows us to use it on IE 8 and above)
+            if (typeof jQuery!= 'undefined') {
+              jQuery(legend.container).html(table);
+            }
+            else {
+              table = D.node(table);
+              this.legend.markup = table;
+              D.insert(legend.container, table);
+            }
           }
           else {
             var styles = {position: 'absolute', 'zIndex': '2', 'border' : '1px solid ' + legend.labelBoxBorderColor};
@@ -5400,6 +5431,279 @@ Flotr.addPlugin('legend', {
       }
     }
   }
+});
+})();
+
+(function () {
+
+if (typeof jQuery != 'undefined') {
+	var $ = jQuery;
+Flotr.addPlugin('selectable_legend', {
+	options: {
+		show: true, // => setting to true will show the legend, hide otherwise
+		noColumns: 1, // => number of colums in legend table // @todo: doesn't work for HtmlText = false
+		labelFormatter: function(v){return v;}, // => fn: string -> string
+		labelBoxBorderColor: '#CCCCCC', // => border color for the little label boxes
+		labelBoxWidth: 14,
+		labelBoxHeight: 10,
+		labelBoxMargin: 5,
+		id: null,
+		container: null, // => container to put legend in, null means default on top of graph
+		backgroundColor: '#F0F0F0', // => Legend background color.
+		backgroundOpacity: 0.85, // => set to 0 to avoid background, set to 1 for a solid background
+		callback : null // Set the callback for selecting/deselecting function
+	},
+	callbacks: {
+		'flotr:afterinit': function() {
+			this.selectable_legend.insertLegend();
+		}
+	},
+	/* Adds a legend div to the canvas container */
+	insertLegend: function(){
+
+		if(!this.options.selectable_legend.show && !this.options.selectable_legend.container)
+			return;
+
+		var series = this.series,
+			plotOffset = this.plotOffset,
+			options = this.options,
+			legend = options.selectable_legend,
+			fragments = [],
+			rowStarted = false, 
+			ctx = this.ctx,
+			itemCount = _.filter(series, function(s) {return (s.label);}).length,
+			p = legend.position, 
+			m = legend.margin,
+			opacity = legend.backgroundOpacity,
+			i, label, color;
+
+		if (itemCount) {
+
+			var lbw = legend.labelBoxWidth,
+					lbh = legend.labelBoxHeight,
+					lbm = legend.labelBoxMargin,
+					offsetX = plotOffset.left + m,
+					offsetY = plotOffset.top + m,
+					labelMaxWidth = 0,
+					style = {
+						size: options.fontSize*1.1,
+						color: options.grid.color
+					};
+
+			// We calculate the labels' max width
+			for(i = series.length - 1; i > -1; --i){
+				if(!series[i].label) continue;
+				label = legend.labelFormatter(series[i].label);
+				labelMaxWidth = Math.max(labelMaxWidth, this._text.measureText(label, style).width);
+			}
+
+			var legendWidth	= Math.round(lbw + lbm*3 + labelMaxWidth),
+					legendHeight = Math.round(itemCount*(lbm+lbh) + lbm);
+
+			// Default Opacity
+			if (!opacity && opacity !== 0) {
+				opacity = 0.1;
+			}
+
+			for(i = 0; i < series.length; ++i){
+				if(!series[i].label) continue;
+				
+				if(i % legend.noColumns === 0){
+					fragments.push(rowStarted ? '</tr><tr>' : '<tr>');
+					rowStarted = true;
+				}
+
+				var s = series[i],
+					boxWidth = legend.labelBoxWidth,
+					boxHeight = legend.labelBoxHeight;
+
+				label = legend.labelFormatter(s.label);
+				color = 'background-color:' + ((s.bars && s.bars.show && s.bars.fillColor && s.bars.fill) ? s.bars.fillColor : s.color) + ';';
+				
+				if (legend.callback) {
+					fragments.push(
+						'<td><input type="checkbox" class="flotr-legend-check-box" data-id="',
+						i, '" data-container="', (legend.id ? legend.id : ''), '"');
+					if (series[i].hide !== true)
+						fragments.push(' checked="checked"');
+					fragments.push('/></td>');
+				}
+				fragments.push(
+					'<td class="flotr-legend-color-box">',
+					'<div style="border:1px solid ', legend.labelBoxBorderColor, ';padding:1px">');
+				fragments.push(
+					'<div style="width:', (boxWidth-1), 'px;height:', (boxHeight-1), 'px;border:1px solid ', series[i].color, '">', // Border
+					'<div style="width:', boxWidth, 'px;height:', boxHeight, 'px;', color, '"></div>', // Background
+					'</div>', '</div>', '</td>', '<td class="flotr-legend-label">');
+				if (legend.callback)
+					fragments.push('<label for="flotr_scb_', (legend.id ? legend.id : ''), i, '">', label, '</label>');
+				else
+					fragments.push(label);
+				fragments.push('</td>');
+			}
+			if(rowStarted) fragments.push('</tr>');
+				
+			if(fragments.length > 0){
+				var table = '<table style="font-size:smaller;color:' + options.grid.color + '">' + fragments.join('') + '</table>';
+				$(legend.container).html(table);
+
+				$(legend.container).find('.flotr-legend-check-box').click(function() {
+					var o = $(this);
+					(legend.callback)(o.data('id'), o);
+				});
+			}
+		}
+	}
+});
+}
+})();
+
+/** Separators **/
+(function () {
+
+Flotr.addPlugin('separators', {
+	options: {
+		show: false, // => setting to true will show lines, false will hide
+		lineWidth: 2, // => line width in pixels
+		yval: null,
+		xval: null,
+		xlabel: null,
+		ylabel: null,
+		xcolor: null,
+		xfill: null,
+		xfillopacity: 0.05,
+		xorientation: 0,
+		ycolor: null,
+		yfill: null,
+		yfillopacity: 0.05,
+		yorientation: 0
+	},
+	callbacks: {
+		'flotr:afterdraw': function() {
+			try {
+				this.separators.insertSeparator();
+			} catch (e) {
+				// Do nothing - we couldn't generate the separator
+			}
+		}
+	},
+	insertSeparator: function(){
+
+		if(!this.options.separators.show)
+			return;
+
+		var opt = this.options,
+			ctx = this.ctx,
+			w = this.plotWidth,
+			h = this.plotHeight,
+			of = this.plotOffset,
+			o = this.options.separators,
+			xS, yS, zero, v, i, x1, x2, y1, y2, style;
+		if (this.series) {
+			for (i = 0; i < this.series.length; i++)
+				if (this.series[i].hide !== true && this.series[i].xaxis && this.series[i].xaxis.d2p && this.series[i].yaxis.d2p) {
+					xS = this.series[i].xaxis.d2p;
+					yS = this.series[i].yaxis.d2p;
+					break;
+				}
+			if (!xS)
+				return;
+		}
+		else
+			return;
+		ctx.save();
+		ctx.lineJoin = 'round';
+		ctx.lineWidth = o.lineWidth;
+		if (o.xval)
+		{
+			v = xS(o.xval);
+			if (v >= 0 && v <= w)
+			{
+				x1 = v + of.left; y1 = of.top; y2 = h + of.top;
+				ctx.strokeStyle = o.xcolor || opt.color;
+				ctx.beginPath();
+				ctx.moveTo(x1, y1);
+				ctx.lineTo(x1, y2);
+				ctx.stroke();
+				ctx.closePath();
+				if (o.xfill && o.xfillopacity) {
+					ctx.fillStyle = this.processColor(o.xfill, {opacity: o.xfillopacity});
+					if (o.xorientation === 0)
+						x2 = of.left;
+					else
+						x2 = w + of.left;
+					ctx.moveTo(x2, y1);
+					ctx.lineTo(x1, y1);
+					ctx.lineTo(x1, y2);
+					ctx.lineTo(x2, y2);
+					ctx.fill();
+				}
+				if (o.xlabel) {
+					style = {
+						size: opt.fontSize,
+						color: o.xcolor || opt.color,
+						textAlign: 'center'
+					};
+					style.size *= 1.2;
+					style.textAlign = "center";
+					style.textBaseline = 'middle';
+					style.angle = Flotr.toRad(90);
+
+					Flotr.drawText(
+						ctx, o.xlabel,
+						x1 + 8,
+						(y1 + y2 + o.xlabel.length) / 2,
+						style);
+					style = null;
+				}
+			}
+		}
+		if (o.yval)
+		{
+			v = yS(o.yval);
+			if (v >= 0 && v <= h)
+			{
+				x1 = of.left; x2 = w + of.left; y1 = v + of.top;
+				ctx.strokeStyle = o.ycolor || opt.color;
+				ctx.beginPath();
+				ctx.moveTo(x1, y1);
+				ctx.lineTo(x2, y1);
+				ctx.stroke();
+				ctx.closePath();
+				if (o.yfill && o.yfillopacity) {
+					ctx.fillStyle = this.processColor(o.yfill, {opacity: o.yfillopacity});
+					if (o.yorientation === 0)
+						y2 = of.top + h;
+					else
+						y2 = of.top;
+					ctx.moveTo(x1, y2);
+					ctx.lineTo(x1, y1);
+					ctx.lineTo(x2, y1);
+					ctx.lineTo(x2, y2);
+					ctx.fill();
+				}
+				if (o.ylabel) {
+					style = {
+						size: opt.fontSize,
+						color: o.ycolor || opt.color,
+						textAlign: 'center'
+					};
+					style.size *= 1.2;
+					style.textAlign = "center";
+					style.textBaseline = 'middle';
+					style.angle = 0;
+
+					Flotr.drawText(
+						ctx, o.ylabel,
+						(x1 + x2 + o.ylabel.length) / 2,
+						y1 + 8,
+						style);
+					style = null;
+				}
+			}
+		}
+		ctx.restore();
+	}
 });
 })();
 
@@ -5543,7 +5847,7 @@ Flotr.addPlugin('spreadsheet', {
         if (i === 0) {
           tag = 'th';
           var label = getRowLabel.call(this, content);
-          if (label) content = (xmode === 'time' ? f.toLocaleString() : h);
+          if (label) content = (xmode === 'time' ? value.toLocaleString() : h);
         }
 
         html.push('<'+tag+(tag=='th'?' scope="row"':'')+'>'+content+'</'+tag+'>');

@@ -19,11 +19,12 @@ Flotr.ExampleList.add({
 function profile_bars (container, horizontal) {
 
   var
-    horizontal = (horizontal ? true : false), // Show horizontal bars
     d1 = [],                                  // First data series
     d2 = [],                                  // Second data series
     point,                                    // Data point variable declaration
     i;
+
+  horizontal = (horizontal ? true : false); // Show horizontal bars
 
   for (i = 0; i < 5000; i++) {
 
@@ -42,7 +43,7 @@ function profile_bars (container, horizontal) {
     }
 
     d2.push(point);
-  };
+  }
               
   // Draw the graph
   Flotr.draw(

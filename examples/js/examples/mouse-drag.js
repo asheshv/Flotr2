@@ -68,6 +68,6 @@ function mouse_drag (container) {
 
   Flotr.EventAdapter.observe(container, 'flotr:mousedown', initializeDrag);
 
-};
+}
 
 })();

@@ -67,7 +67,7 @@
       // Error
       win.onerror = iframe.onerror = function () {
         that.onerror.apply(null, arguments);
-      }
+      };
 
       doc.write(example);
       doc.close();
@@ -89,7 +89,6 @@
       node      = $(T_EDITOR),
       renderId  = 'editor-render-' + COUNT,
       api,
-      render,
       codeMirror;
 
     api = new TYPES[type]({
@@ -115,7 +114,7 @@
       .append(node);
 
     source
-      .append(errors)
+      .append(errors);
 
     example = api.example({
       args : o.args,
@@ -154,7 +153,7 @@
       } else {
         return false;
       }
-    }
+    };
 
     // Helpers
 
@@ -238,7 +237,7 @@
       form.append(input);
 
       // CSS
-      input = $('<input type="hidden" name="normalize_css" value="no">')
+      input = $('<input type="hidden" name="normalize_css" value="no">');
       form.append(input);
       input = $('<input type="hidden" name="css">')
         .attr('value',
@@ -270,7 +269,7 @@
       codeMirror.setValue(example);
       codeMirror.refresh();
       execute();
-    }
+    };
   }
 
   if (typeof Flotr.Examples === 'undefined') Flotr.Examples = {};

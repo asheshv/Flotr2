@@ -33,10 +33,10 @@ Flotr.addPlugin('selectable_legend', {
 			options = this.options,
 			legend = options.selectable_legend,
 			fragments = [],
-			rowStarted = false, 
+			rowStarted = false,
 			ctx = this.ctx,
 			itemCount = _.filter(series, function(s) {return (s.label);}).length,
-			p = legend.position, 
+			p = legend.position,
 			m = legend.margin,
 			opacity = legend.backgroundOpacity,
 			i, label, color;
@@ -71,7 +71,7 @@ Flotr.addPlugin('selectable_legend', {
 
 			for(i = 0; i < series.length; ++i){
 				if(!series[i].label) continue;
-				
+
 				if(i % legend.noColumns === 0){
 					fragments.push(rowStarted ? '</tr><tr>' : '<tr>');
 					rowStarted = true;
@@ -83,7 +83,7 @@ Flotr.addPlugin('selectable_legend', {
 
 				label = legend.labelFormatter(s.label);
 				color = 'background-color:' + ((s.bars && s.bars.show && s.bars.fillColor && s.bars.fill) ? s.bars.fillColor : s.color) + ';';
-				
+
 				if (legend.callback) {
 					fragments.push(
 						'<td><input type="checkbox" class="flotr-legend-check-box" data-id="',
@@ -106,7 +106,7 @@ Flotr.addPlugin('selectable_legend', {
 				fragments.push('</td>');
 			}
 			if(rowStarted) fragments.push('</tr>');
-				
+
 			if(fragments.length > 0){
 				var table = '<table style="font-size:smaller;color:' + options.grid.color + '">' + fragments.join('') + '</table>';
 				$(legend.container).html(table);

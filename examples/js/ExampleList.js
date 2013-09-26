@@ -22,7 +22,7 @@ ExampleList.prototype = {
       return (example.type === type);
     });
   }
-}
+};
 
 Flotr.ExampleList = new ExampleList();
 

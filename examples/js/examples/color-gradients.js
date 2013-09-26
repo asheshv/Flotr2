@@ -68,7 +68,7 @@ function color_gradients (container) {
       }
     }
   );
-};
+}
 
 })();
 

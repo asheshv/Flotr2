@@ -36,6 +36,6 @@ function click_example (container) {
     // Redraw the graph, with the new series.
     graph = Flotr.draw(container, [d1], options);
   });
-};      
+}      
 
 })();

@@ -15,7 +15,7 @@ function basic_timeline (container) {
     d4        = [[1.55, 1, 9]],
     d5        = [[5, 0, 2.3]],
     data      = [],
-    timeline  = { show : true, barWidth : .5 },
+    timeline  = { show : true, barWidth : 0.5 },
     markers   = [],
     labels    = ['Obama', 'Bush', 'Clinton', 'Palin', 'McCain'],
     i, graph, point;
@@ -49,9 +49,9 @@ function basic_timeline (container) {
       noTicks: 3,
       tickFormatter: function (x) {
         var
-          x = parseInt(x),
+          x1 = parseInt(x, 10),
           months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        return months[(x-1)%12];
+        return months[(x1-1)%12];
       }
     }, 
     yaxis: {

@@ -64,12 +64,12 @@ function advanced_markers (container) {
         }
       }
     );
-  }
+  };
 
   xmark.onload = runner;
   xmark.src = 'images/xmark.png';
   checkmark.src = 'images/checkmark.png';
-};
+}
 
 })();
 

@@ -22,7 +22,7 @@ function advanced_titles (container) {
     d2.push([i, Math.pow(i,3)]);
     d3.push([i, i*5+3*Math.sin(i*4)]);
     d4.push([i, i]);
-    if (i.toFixed(1)%1 == 0) {
+    if (i.toFixed(1)%1 === 0) {
       d5.push([i, 2*i]);
     }
   }
@@ -61,6 +61,6 @@ function advanced_titles (container) {
         position : 'nw'
       }
   });
-};
+}
 
 })();

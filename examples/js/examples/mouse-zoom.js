@@ -57,7 +57,7 @@ function mouse_zoom (container) {
     
   // When graph is clicked, draw the graph with default area.
   Flotr.EventAdapter.observe(container, 'flotr:click', function () { drawGraph(); });
-};
+}
 
 })();
 

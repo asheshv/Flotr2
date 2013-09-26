@@ -22,7 +22,7 @@ ExampleList.prototype = {
       return (example.type === type);
     });
   }
-}
+};
 
 Flotr.ExampleList = new ExampleList();
 
@@ -163,7 +163,7 @@ function basic_axis (container) {
     d2.push([i, Math.pow(i,3)]);
     d3.push([i, i*5+3*Math.sin(i*4)]);
     d4.push([i, i]);
-    if( i.toFixed(1)%1 == 0 ){
+    if( i.toFixed(1)%1 === 0 ){
       d5.push([i, 2*i]);
     }
   }
@@ -227,11 +227,11 @@ Flotr.ExampleList.add({
 function basic_bars (container, horizontal) {
 
   var
-    horizontal = (horizontal ? true : false), // Show horizontal bars
     d1 = [],                                  // First data series
     d2 = [],                                  // Second data series
     point,                                    // Data point variable declaration
     i;
+  horizontal = (horizontal ? true : false); // Show horizontal bars
 
   for (i = 0; i < 4; i++) {
 
@@ -250,7 +250,7 @@ function basic_bars (container, horizontal) {
     }
 
     d2.push(point);
-  };
+  }
               
   // Draw the graph
   Flotr.draw(
@@ -417,7 +417,8 @@ function basic_radar (container) {
     radar : { show : true}, 
     grid  : { circular : true, minorHorizontalLines : true}, 
     yaxis : { min : 0, max : 10, minorTickFreq : 2}, 
-    xaxis : { ticks : ticks}
+    xaxis : { ticks : ticks},
+    mouse : { track : true}
   });
 }
 
@@ -587,7 +588,7 @@ function mouse_tracking (container) {
     }
   );
 
-};      
+}      
 
 })();
 
@@ -650,7 +651,7 @@ function mouse_zoom (container) {
     
   // When graph is clicked, draw the graph with default area.
   Flotr.EventAdapter.observe(container, 'flotr:click', function () { drawGraph(); });
-};
+}
 
 })();
 
@@ -703,33 +704,29 @@ function mouse_drag (container) {
 
   function initializeDrag (e) {
     start = graph.getEventPosition(e);
-    Flotr.EventAdapter.observe(document, 'mousemove', move);
-    Flotr.EventAdapter.observe(document, 'mouseup', stopDrag);
+    Flotr.EventAdapter.observe(container, 'flotr:mousemove', move);
+    Flotr.EventAdapter.observe(container, 'flotr:mouseup', stopDrag);
   }
 
-  function move (e) {
+  function move (e, o) {
     var
-      end     = graph.getEventPosition(e),
       xaxis   = graph.axes.x,
-      offset  = start.x - end.x;
-
+      offset  = start.x - o.x;
     graph = drawGraph({
       xaxis : {
         min : xaxis.min + offset,
         max : xaxis.max + offset
       }
     });
-    // @todo: refector initEvents in order not to remove other observed events
-    Flotr.EventAdapter.observe(graph.overlay, 'mousedown', initializeDrag);
   }
 
   function stopDrag () {
-    Flotr.EventAdapter.stopObserving(document, 'mousemove', move);
+    Flotr.EventAdapter.stopObserving(container, 'flotr:mousemove', move);
   }
 
-  Flotr.EventAdapter.observe(graph.overlay, 'mousedown', initializeDrag);
+  Flotr.EventAdapter.observe(container, 'flotr:mousedown', initializeDrag);
 
-};
+}
 
 })();
 
@@ -794,7 +791,7 @@ function basic_time (container) {
         
   // When graph is clicked, draw the graph with default area.
   Flotr.EventAdapter.observe(container, 'flotr:click', function () { graph = drawGraph(); });
-};      
+}      
 
 })();
 
@@ -844,7 +841,7 @@ function negative_values (container) {
   
   // Compute the regression line.
   for (n = 0; n < 20; n++){
-    d2.push([n, alpha + beta*n])
+    d2.push([n, alpha + beta*n]);
   }     
 
   // Draw the graph
@@ -859,7 +856,7 @@ function negative_values (container) {
       title : 'Negative Values'
     }
   );
-};
+}
 
 })();
 
@@ -901,7 +898,7 @@ function click_example (container) {
     // Redraw the graph, with the new series.
     graph = Flotr.draw(container, [d1], options);
   });
-};      
+}      
 
 })();
 
@@ -938,7 +935,7 @@ function download_image (container) {
     d2.push([i, Math.pow(i,3)]);
     d3.push([i, i*5+3*Math.sin(i*4)]);
     d4.push([i, i]);
-    if( i.toFixed(1)%1 == 0 ){
+    if( i.toFixed(1)%1 === 0 ){
       d5.push([i, 2*i]);
     }
   }
@@ -990,7 +987,7 @@ function download_image (container) {
     }
 
     if (operation == 'to-image') {
-      graph.download.saveImage(format, null, null, true)
+      graph.download.saveImage(format, null, null, true);
     } else if (operation == 'download') {
       graph.download.saveImage(format);
     } else if (operation == 'reset') {
@@ -999,7 +996,7 @@ function download_image (container) {
   };
 
   return graph;
-};
+}
 
 })();
 
@@ -1064,7 +1061,7 @@ function download_data (container) {
         tickFormatter : function (e) { return e+''; }
       }
   });
-};
+}
 
 })();
 
@@ -1092,7 +1089,7 @@ function advanced_titles (container) {
     d2.push([i, Math.pow(i,3)]);
     d3.push([i, i*5+3*Math.sin(i*4)]);
     d4.push([i, i]);
-    if (i.toFixed(1)%1 == 0) {
+    if (i.toFixed(1)%1 === 0) {
       d5.push([i, 2*i]);
     }
   }
@@ -1131,7 +1128,7 @@ function advanced_titles (container) {
         position : 'nw'
       }
   });
-};
+}
 
 })();
 
@@ -1205,7 +1202,7 @@ function color_gradients (container) {
       }
     }
   );
-};
+}
 
 })();
 
@@ -1231,11 +1228,12 @@ Flotr.ExampleList.add({
 function profile_bars (container, horizontal) {
 
   var
-    horizontal = (horizontal ? true : false), // Show horizontal bars
     d1 = [],                                  // First data series
     d2 = [],                                  // Second data series
     point,                                    // Data point variable declaration
     i;
+
+  horizontal = (horizontal ? true : false); // Show horizontal bars
 
   for (i = 0; i < 5000; i++) {
 
@@ -1254,7 +1252,7 @@ function profile_bars (container, horizontal) {
     }
 
     d2.push(point);
-  };
+  }
               
   // Draw the graph
   Flotr.draw(
@@ -1297,7 +1295,7 @@ function basic_timeline (container) {
     d4        = [[1.55, 1, 9]],
     d5        = [[5, 0, 2.3]],
     data      = [],
-    timeline  = { show : true, barWidth : .5 },
+    timeline  = { show : true, barWidth : 0.5 },
     markers   = [],
     labels    = ['Obama', 'Bush', 'Clinton', 'Palin', 'McCain'],
     i, graph, point;
@@ -1331,9 +1329,9 @@ function basic_timeline (container) {
       noTicks: 3,
       tickFormatter: function (x) {
         var
-          x = parseInt(x),
+          x1 = parseInt(x, 10),
           months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        return months[(x-1)%12];
+        return months[(x1-1)%12];
       }
     }, 
     yaxis: {
@@ -1413,12 +1411,12 @@ function advanced_markers (container) {
         }
       }
     );
-  }
+  };
 
   xmark.onload = runner;
   xmark.src = 'images/xmark.png';
   checkmark.src = 'images/checkmark.png';
-};
+}
 
 })();
 

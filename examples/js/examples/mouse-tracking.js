@@ -46,6 +46,6 @@ function mouse_tracking (container) {
     }
   );
 
-};      
+}      
 
 })();

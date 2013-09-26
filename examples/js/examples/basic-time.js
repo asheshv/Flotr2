@@ -59,6 +59,6 @@ function basic_time (container) {
         
   // When graph is clicked, draw the graph with default area.
   Flotr.EventAdapter.observe(container, 'flotr:click', function () { graph = drawGraph(); });
-};      
+}      
 
 })();

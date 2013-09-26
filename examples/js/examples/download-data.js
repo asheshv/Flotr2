@@ -59,6 +59,6 @@ function download_data (container) {
         tickFormatter : function (e) { return e+''; }
       }
   });
-};
+}
 
 })();

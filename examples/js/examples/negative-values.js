@@ -44,7 +44,7 @@ function negative_values (container) {
   
   // Compute the regression line.
   for (n = 0; n < 20; n++){
-    d2.push([n, alpha + beta*n])
+    d2.push([n, alpha + beta*n]);
   }     
 
   // Draw the graph
@@ -59,6 +59,6 @@ function negative_values (container) {
       title : 'Negative Values'
     }
   );
-};
+}
 
 })();

@@ -30,7 +30,7 @@ var
       '<div class="' + CN_RESET + '">View All</div>' +
       '<div class="' + CN_THUMBS + '"></div>' +
       '<div class="' + CN_CONTAINER + '"></div>' +
-    '</div>'
+    '</div>';
 
 Examples = function (o) {
 
@@ -100,7 +100,7 @@ Examples.prototype = {
       node.data('example', example);
       thumbsNode.append(node);
       that._example.executeCallback(example, node);
-      node.click(function () {that._loadExample(example)});
+      node.click(function () {that._loadExample(example);});
 
       if (order.length)  setTimeout(runner, 20);
     })();
@@ -270,7 +270,7 @@ Examples.prototype = {
       this._reset();
     }
   }
-}
+};
 
 var scroller = (function () {
 

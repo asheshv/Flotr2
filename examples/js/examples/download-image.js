@@ -31,7 +31,7 @@ function download_image (container) {
     d2.push([i, Math.pow(i,3)]);
     d3.push([i, i*5+3*Math.sin(i*4)]);
     d4.push([i, i]);
-    if( i.toFixed(1)%1 == 0 ){
+    if( i.toFixed(1)%1 === 0 ){
       d5.push([i, 2*i]);
     }
   }
@@ -83,7 +83,7 @@ function download_image (container) {
     }
 
     if (operation == 'to-image') {
-      graph.download.saveImage(format, null, null, true)
+      graph.download.saveImage(format, null, null, true);
     } else if (operation == 'download') {
       graph.download.saveImage(format);
     } else if (operation == 'reset') {
@@ -92,6 +92,6 @@ function download_image (container) {
   };
 
   return graph;
-};
+}
 
 })();
