@@ -3283,8 +3283,8 @@ Graph.prototype = {
       ry = pointer.y - r.top - plotOffset.top;
     } else {
       r = this.overlay.getBoundingClientRect();
-      rx = e.clientX - r.left - plotOffset.left - b.scrollLeft - de.scrollLeft;
-      ry = e.clientY - r.top - plotOffset.top - b.scrollTop - de.scrollTop;
+      rx = e.clientX - r.left - plotOffset.left - de.scrollLeft;
+      ry = e.clientY - r.top - plotOffset.top - de.scrollTop;
     }
 
     return {
@@ -4216,8 +4216,10 @@ Flotr.addType('lines', {
         y1 = yScale(data[i][1] + stack1);
         y2 = yScale(data[i+1][1] + stack2);
         if (incStack) {
+          data[i].y0 = stack1;
           stack.values[data[i][0]] = data[i][1] + stack1;
           if (i == length-1) {
+            data[i+1].y0 = stack2;
             stack.values[data[i+1][0]] = data[i+1][1] + stack2;
           }
         }
@@ -6535,6 +6537,8 @@ Flotr.addPlugin('hit', {
 
         x = data[j][0];
         y = data[j][1];
+        // Add stack offset if exists
+        if (data[j].y0) y += data[j].y0;
 
         if (x === null || y === null) continue;
 
