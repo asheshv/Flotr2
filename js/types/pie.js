@@ -103,6 +103,13 @@ Flotr.addType('pie', {
     context.strokeStyle = color;
     context.stroke();
 
+    style = {
+      size : options.fontSize * 1.2,
+      color : options.fontColor,
+      weight : 1.5,
+      fontFamily: options.fontFamily
+    };
+
     if (label) {
       if (options.htmlText || !options.textEnabled) {
         divStyle = 'position:absolute;' + textBaseline + ':' + (height / 2 + (textBaseline === 'top' ? distY : -distY)) + 'px;';

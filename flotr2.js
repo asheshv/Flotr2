@@ -2170,14 +2170,15 @@ Flotr = {
       textAlign: 'left',
       textBaseline: 'bottom',
       weight: 1,
-      angle: 0
+      angle: 0,
+      fontFamily: 'sans-serif'
     }, style);
     
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(style.angle);
     ctx.fillStyle = style.color;
-    ctx.font = (style.weight > 1 ? "bold " : "") + (style.size*1.3) + "px sans-serif";
+    ctx.font = (style.weight > 1 ? "bold " : "") + (style.size*1.3) + "px " + style.fontFamily;
     ctx.textAlign = style.textAlign;
     ctx.textBaseline = style.textBaseline;
     ctx.fillText(text, 0, 0);
@@ -2232,6 +2233,7 @@ Flotr.defaultOptions = {
   HtmlText: true,          // => wether to draw the text using HTML or on the canvas
   fontColor: '#545454',    // => default font color
   fontSize: 7.5,           // => canvas' text font size
+  fontFamily: "sans-serif", // => canvas text font family
   resolution: 1,           // => resolution of the graph, to have printer-friendly graphs !
   parseFloat: true,        // => whether to preprocess data for floats (ie. if input is string)
   preventDefault: true,    // => preventDefault by default for mobile events.  Turn off to enable scroll.
@@ -5373,7 +5375,7 @@ Flotr.addType('markers', {
     if (isImage(label))
       context.drawImage(label, parseInt(left+margin, 10), parseInt(top+margin, 10));
     else
-      Flotr.drawText(context, label, left+margin, top+margin, {textBaseline: 'top', textAlign: 'left', size: options.fontSize, color: options.color});
+      Flotr.drawText(context, label, left+margin, top+margin, {textBaseline: 'top', textAlign: 'left', size: options.fontSize, color: options.color, fontFamily: options.fontFamily});
   }
 });
 
@@ -5487,6 +5489,13 @@ Flotr.addType('pie', {
     context.lineWidth = lineWidth;
     context.strokeStyle = color;
     context.stroke();
+
+    style = {
+      size : options.fontSize * 1.2,
+      color : options.fontColor,
+      weight : 1.5,
+      fontFamily: options.fontFamily
+    };
 
     if (label) {
       if (options.htmlText || !options.textEnabled) {
@@ -7041,7 +7050,8 @@ Flotr.addPlugin('labels', {
       style = {
         color        : axis.options.color || options.grid.color,
         angle        : Flotr.toRad(axis.options.labelsAngle),
-        textBaseline : 'middle'
+        textBaseline : 'middle',
+        fontFamily: options.fontFamily
       };
 
       for (i = 0; i < ticks.length &&
@@ -7074,7 +7084,8 @@ Flotr.addPlugin('labels', {
         color        : axis.options.color || options.grid.color,
         textAlign    : textAlign,
         textBaseline : textBaseline,
-        angle : Flotr.toRad(axis.options.labelsAngle)
+        angle : Flotr.toRad(axis.options.labelsAngle),
+        fontFamily: options.fontFamily
       };
       style = Flotr.getBestTextAlign(style.angle, style);
 
@@ -7244,7 +7255,8 @@ Flotr.addPlugin('legend', {
           labelMaxWidth = 0,
           style = {
             size: options.fontSize*1.1,
-            color: options.grid.color
+            color: options.grid.color,
+            fontFamily: options.fontFamily
           };
 
       // We calculate the labels' max width
@@ -7977,7 +7989,8 @@ Flotr.addPlugin('titles', {
       var style = {
         size: options.fontSize,
         color: options.grid.color,
-        textAlign: 'center'
+        textAlign: 'center',
+        fontFamily: options.fontFamily
       };
       
       // Add subtitle
