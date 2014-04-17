@@ -41,10 +41,16 @@ F.EventAdapter = {
       var
         d = document,
         b = d.body,
-        de = d.documentElement;
+        de = d.documentElement,
+        sL = b.scrollLeft,
+        sT = b.scrollTop;
+      if (de && typeof(de.scrollLeft) != 'undefined' && typeof(de.scrollTop) != 'undefined') {
+	sL = de.scrollLeft;
+	sT = de.scrollTop;
+      }
       return {
-        x: e.clientX + b.scrollLeft + de.scrollLeft,
-        y: e.clientY + b.scrollTop + de.scrollTop
+        x: e.clientX + b.scrollLeft + sL,
+        y: e.clientY + b.scrollTop + sT
       };
     }
   }

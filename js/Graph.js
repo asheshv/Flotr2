@@ -339,7 +339,7 @@ Graph.prototype = {
       sL = b.scrollLeft,
       sT = b.scrollTop;
 
-    if (de && de.scrollLeft && de.scrollTop) {
+    if (de && typeof(de.scrollLeft) != 'undefined' && typeof(de.scrollTop) != 'undefined') {
       sL = de.scrollLeft;
       sT = de.scrollTop;
     }
