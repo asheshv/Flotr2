@@ -870,19 +870,9 @@ F.EventAdapter = {
         y : e.pageY
       };
     } else if (e.clientX || e.clientY) {
-      var
-        d = document,
-        b = d.body,
-        de = d.documentElement,
-        sL = b.scrollLeft,
-        sT = b.scrollTop;
-      if (de && typeof(de.scrollLeft) != 'undefined' && typeof(de.scrollTop) != 'undefined') {
-	sL = de.scrollLeft;
-	sT = de.scrollTop;
-      }
       return {
-        x: e.clientX + b.scrollLeft + sL,
-        y: e.clientY + b.scrollTop + sT
+        x: e.clientX + ((window.pageXOffset !== undefined) ? window.pageXOffset : (document.documentElement || document.body.parentNode || document.body).scrollLeft),
+        y: e.clientY + ((window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop)
       };
     }
   }
