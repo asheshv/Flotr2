@@ -1306,13 +1306,8 @@ Graph.prototype = {
       dx = pointer.x - lastMousePos.pageX,
       dy = pointer.y - lastMousePos.pageY,
       r, rx, ry,
-      sL = b.scrollLeft,
-      sT = b.scrollTop;
-
-    if (de && typeof(de.scrollLeft) != 'undefined' && typeof(de.scrollTop) != 'undefined') {
-      sL = de.scrollLeft;
-      sT = de.scrollTop;
-    }
+      sL = ((window.pageXOffset !== undefined) ? window.pageXOffset : (de || b.parentNode || b).scrollLeft),
+      sT = ((window.pageYOffset !== undefined) ? window.pageYOffset : (de || b.parentNode || b).scrollTop);
 
     if ('ontouchstart' in this.el) {
       r = D.position(this.overlay);
