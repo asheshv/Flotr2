@@ -3456,7 +3456,7 @@ Graph.prototype = {
       touchendHandler = _.bind(function (e) {
         touchend = true;
         E.stopObserving(document, 'touchend', touchendHandler);
-        E.fire(el, 'flotr:mouseup', [event, this]);
+        E.fire(el, 'flotr:mouseup', [e, this]);
         this.multitouches = null;
 
         if (!movement) {
@@ -3473,7 +3473,7 @@ Graph.prototype = {
           this.multitouches = e.touches;
         }
 
-        E.fire(el, 'flotr:mousedown', [event, this]);
+        E.fire(el, 'flotr:mousedown', [e, this]);
         this.observe(document, 'touchend', touchendHandler);
       }, this));
 
@@ -3491,7 +3491,7 @@ Graph.prototype = {
           this.multitouches = e.touches;
         } else {
           if (!touchend) {
-            E.fire(el, 'flotr:mousemove', [event, pos, this]);
+            E.fire(el, 'flotr:mousemove', [e, pos, this]);
           }
         }
         this.lastMousePos = pos;
