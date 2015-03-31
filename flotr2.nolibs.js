@@ -1134,17 +1134,14 @@ Graph.prototype = {
 
     // Title height
     dim = T.dimensions(
-      options.title,
+      options.title || 'ABC',
       {size: options.fontSize*1.5},
       'font-size:1em;font-weight:bold;',
       'flotr-title'
     );
 	// We will set the minimun title Height to 5.
 	// So that - it will show the y-axis labels properly
-	if (options.title)
-		this.titleHeight = dim.height;
-	else
-		this.titleHeight = 5;
+	this.titleHeight = dim.height;
 
     // Subtitle height
     dim = T.dimensions(
@@ -1928,7 +1925,7 @@ Axis.prototype = {
 
     this.maxLabel = T.dimensions(
       maxLabel,
-      {size:options.fontSize, fontFamily: options.fontFamily, angle: Flotr.toRad(this.options.labelsAngle)},
+      {size:options.fontSize*1.2, fontFamily: options.fontFamily, angle: Flotr.toRad(this.options.labelsAngle)},
       'font-size:smaller;',
       'flotr-grid-label'
     );
@@ -3526,7 +3523,7 @@ Flotr.addType('pie', {
     context.stroke();
 
     style = {
-      size : options.fontSize * 1.2,
+      size : options.fontSize,
       color : options.fontColor,
       weight : 1.5,
       fontFamily: options.fontFamily

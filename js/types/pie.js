@@ -104,7 +104,7 @@ Flotr.addType('pie', {
     context.stroke();
 
     style = {
-      size : options.fontSize * 1.2,
+      size : options.fontSize,
       color : options.fontColor,
       weight : 1.5,
       fontFamily: options.fontFamily
