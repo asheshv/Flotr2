@@ -166,9 +166,12 @@ Graph.prototype = {
       'font-size:1em;font-weight:bold;',
       'flotr-title'
     );
-	// We will set the minimun title Height to 5.
-	// So that - it will show the y-axis labels properly
-	this.titleHeight = dim.height;
+    // We will set the minimun title Height to 5.
+    // So that - it will show the y-axis labels properly
+    if (options.title)
+        this.titleHeight = dim.height;
+    else
+        this.titleHeight = (options.fontSize / options.defaultOptions.fontSize) * 5;
 
     // Subtitle height
     dim = T.dimensions(
