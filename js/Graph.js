@@ -171,7 +171,7 @@ Graph.prototype = {
     if (options.title)
         this.titleHeight = dim.height;
     else
-        this.titleHeight = (options.fontSize / options.defaultOptions.fontSize) * 5;
+        this.titleHeight = (options.fontSize / flotr.defaultOptions.fontSize) * 5;
 
     // Subtitle height
     dim = T.dimensions(
