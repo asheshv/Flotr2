@@ -137,8 +137,8 @@ Flotr.addPlugin('spreadsheet', {
             content = (!_.isUndefined(value) ? Math.round(value*100000)/100000 : '');
         if (i === 0) {
           tag = 'th';
-          var label = getRowLabel.call(this, content);
-          if (label) content = (xmode === 'time' ? value.toLocaleString() : h);
+          var l = (xmode === 'time' ? value.toLocaleString() : getRowLabel.call(this, content));
+          if (l) content = l;
         }
 
         html.push('<'+tag+(tag=='th'?' scope="row"':'')+'>'+content+'</'+tag+'>');
