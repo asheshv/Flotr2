@@ -53,6 +53,12 @@ Flotr.addPlugin('download', {
       D.insert(this.el, image);
       this.saveImageElement = image;
     } else {
+      var u = navigator.userAgent, isIE = (Flotr.isIE || (new RegExp(/(trident).+rv[:\s]([\w\.]+).+like\sgecko/i)).test(u) || (new RegExp(/(edge)\/((\d+)?[\w\.]+)/i)).test(u));
+
+      if (isIE) {
+          return window.open('about:blank').document.body.innerHTML = '<img src="' + image.src+ '">';
+      }
+
       return window.open(image.src);
     }
   },
