@@ -6065,6 +6065,12 @@ Flotr.addPlugin('download', {
       D.insert(this.el, image);
       this.saveImageElement = image;
     } else {
+      var u = navigator.userAgent, isIE = (Flotr.isIE || (new RegExp(/(trident).+rv[:\s]([\w\.]+).+like\sgecko/i)).test(u) || (new RegExp(/(edge)\/((\d+)?[\w\.]+)/i)).test(u));
+
+      if (isIE) {
+          return window.open('about:blank').document.body.innerHTML = '<img src="' + image.src+ '">';
+      }
+
       return window.open(image.src);
     }
   },
@@ -7807,8 +7813,8 @@ Flotr.addPlugin('spreadsheet', {
             content = (!_.isUndefined(value) ? Math.round(value*100000)/100000 : '');
         if (i === 0) {
           tag = 'th';
-          var label = getRowLabel.call(this, content);
-          if (label) content = (xmode === 'time' ? value.toLocaleString() : h);
+          var l = (xmode === 'time' ? value.toLocaleString() : getRowLabel.call(this, content));
+          if (l) content = l;
         }
 
         html.push('<'+tag+(tag=='th'?' scope="row"':'')+'>'+content+'</'+tag+'>');
