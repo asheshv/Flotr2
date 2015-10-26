@@ -750,7 +750,11 @@ Flotr.DOM = {
     var div = Flotr.DOM.create('div'), n;
     div.innerHTML = html;
     n = div.children[0];
-    div.innerHTML = '';
+    var u = navigator.userAgent,
+        isIE = (Flotr.isIE || (new RegExp(/(trident).+rv[:\s]([\w\.]+).+like\sgecko/i)).test(u) || (new RegExp(/(edge)\/((\d+)?[\w\.]+)/i)).test(u));
+    if(!isIE){
+        div.innerHTML = ''; // causing issue in rendering charts tabs and table content in IE9+.
+    }
     return n;
   },
   /**
@@ -5739,7 +5743,9 @@ Flotr.addPlugin('spreadsheet', {
     csvFileSeparator: ',',
     decimalSeparator: '.',
     tickFormatter: null,
-    initialTab: 'graph'
+    initialTab: 'graph',
+    sortFunc: null, // declared and initialized to null
+    xaxisLabel: null // delcared and initialized to null
   },
   /**
    * Builds the tabs in the DOM
@@ -5786,14 +5792,16 @@ Flotr.addPlugin('spreadsheet', {
     if (this.seriesData) return this.seriesData;
 
     var s = this.series,
-        rows = {};
+        rows = {},
+        xmode = this.options.xaxis && this.options.xaxis.mode; // Check if mode is time or normal
 
     /* The data grid is a 2 dimensions array. There is a row for each X value.
      * Each row contains the x value and the corresponding y value for each serie ('undefined' if there isn't one)
     **/
     _.each(s, function(serie, i){
       _.each(serie.data, function (v) {
-        var x = v[0],
+        // Convert date time format to mm/dd/yyyy
+        var x = (xmode === 'time' ? v[0].toLocaleString() : v[0]),
             y = v[1],
             r = rows[x];
         if (r) {
@@ -5807,10 +5815,12 @@ Flotr.addPlugin('spreadsheet', {
       });
     });
 
-    // The data grid is sorted by x value
-    this.seriesData = _.sortBy(rows, function(row, x){
-      return parseInt(x, 10);
-    });
+    // The data grid is sorted by x value.
+    var sortFunc = (_.isFunction(this.options.spreadsheet.sortFunc) && this.options.spreadsheet.sortFunc) || function(row, x) {
+        return parseInt(x, 10);
+    };
+
+    this.seriesData = _.sortBy(rows, sortFunc);
     return this.seriesData;
   },
   /**
@@ -5826,11 +5836,11 @@ Flotr.addPlugin('spreadsheet', {
         datagrid = this.spreadsheet.loadDataGrid(),
         colgroup = ['<colgroup><col />'],
         buttonDownload, buttonSelect, t,
-		xmode = this.options.xaxis.mode;
+		xmode = this.options.xaxis && this.options.xaxis.mode; // Check if mode is time or normal
     
     // First row : series' labels
     var html = ['<table class="flotr-datagrid"><tr class="first-row">'];
-    html.push('<th></th>');
+    html.push('<th>' + (this.options.spreadsheet.xaxisLabel || ' ') + '</th>'); // Set label
     _.each(s, function(serie,i){
       html.push('<th scope="col">'+(serie.label || String.fromCharCode(65+i))+'</th>');
       colgroup.push('<col />');
@@ -5885,7 +5895,7 @@ Flotr.addPlugin('spreadsheet', {
       '</button>');
 
     buttonSelect = D.node(
-      '<button type="button" class="flotr-datagrid-toolbar-button">' +
+      '<button type="button" class="flotr-datagrid-toolbar-button btn-hidden">' + // Hide selectall button
       this.options.spreadsheet.toolbarSelectAll+
       '</button>');
 
@@ -5970,7 +5980,10 @@ Flotr.addPlugin('spreadsheet', {
    * Converts the data into CSV in order to download a file
    */
   downloadCSV: function(){
-    var csv = '',
+    // Check and assign xaxisLabel label if it is not empty
+    var csv = (this.options.spreadsheet.xaxisLabel ?
+                '"'+(this.options.spreadsheet.xaxisLabel).replace(/\"/g, '\\"')+'"' :
+                ''),
         series = this.series,
         options = this.options,
         dg = this.spreadsheet.loadDataGrid(),
@@ -5998,11 +6011,33 @@ Flotr.addPlugin('spreadsheet', {
       return memo + rowLabel+separator+numbers+"%0D%0A"; // \t and \r\n
     }, '', this);
 
-    if (Flotr.isIE && Flotr.isIE < 9) {
-      csv = csv.replace(new RegExp(separator, 'g'), decodeURIComponent(separator)).replace(/%0A/g, '\n').replace(/%0D/g, '\r');
-      window.open().document.write(csv);
+    //Using below code, it prompts user to save file in IE10+ and other browsers
+    csv = csv.replace(new RegExp(separator, 'g'), decodeURIComponent(separator)).replace(/%0A/g, '\n').replace(/%0D/g, '\r');
+    var csv_filename = (this.options.spreadsheet.title+'_data').replace(/\s+/g, '_').toLowerCase();
+    if (navigator && navigator.msSaveBlob) {  // IE 10+
+        var blob = new Blob([csv],{type: "text/csv;charset=utf-8;"});
+        navigator.msSaveBlob(blob, csv_filename)
+    } else {
+        var link = document.createElement("a");
+        if (link.download !== undefined) { // feature detection
+            // Browsers that support HTML5 download attribute
+            var url;
+            if (Blob && URL && URL.createObjectURL) {
+                var blob = new Blob([csv],{type: "text/csv;charset=utf-8;"});
+                url = URL.createObjectURL(blob);
+            } else {
+                url = "text/csv;charset=utf-8;" + encodeURIComponent(csv);
+            }
+            link.setAttribute("href", url);
+            link.setAttribute("download", csv_filename);
+            link.style = "visibility:hidden";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } else {
+            window.open('about:blank').document.write(csv);
+        }
     }
-    else window.open('data:text/csv,'+csv);
   }
 });
 })();

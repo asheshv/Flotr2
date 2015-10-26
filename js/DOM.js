@@ -23,7 +23,11 @@ Flotr.DOM = {
     var div = Flotr.DOM.create('div'), n;
     div.innerHTML = html;
     n = div.children[0];
-    div.innerHTML = '';
+    var u = navigator.userAgent,
+        isIE = (Flotr.isIE || (new RegExp(/(trident).+rv[:\s]([\w\.]+).+like\sgecko/i)).test(u) || (new RegExp(/(edge)\/((\d+)?[\w\.]+)/i)).test(u));
+    if(!isIE){
+        div.innerHTML = ''; // causing issue in rendering charts tabs and table content in IE9+.
+    }
     return n;
   },
   /**
