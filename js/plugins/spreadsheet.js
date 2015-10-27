@@ -31,7 +31,8 @@ Flotr.addPlugin('spreadsheet', {
     tickFormatter: null,
     initialTab: 'graph',
     sortFunc: null, // declared and initialized to null
-    xaxisLabel: null // delcared and initialized to null
+    xaxisLabel: null, // delcared and initialized to null
+    csv_filename: null // declared and set default value
   },
   /**
    * Builds the tabs in the DOM
@@ -151,7 +152,7 @@ Flotr.addPlugin('spreadsheet', {
       }, this);
       html.push('</tr>');
     }, this);
-	html.push('</table>');
+    html.push('</table>');
     colgroup.push('</colgroup>');
     t = D.node(html.join(''));
 
@@ -195,7 +196,7 @@ Flotr.addPlugin('spreadsheet', {
 
     var containerHeight =this.canvasHeight - D.size(this.spreadsheet.tabsContainer).height-2,
         container = D.node('<div class="flotr-datagrid-container" style="position:absolute;left:0px;top:0px;width:'+
-          this.canvasWidth+'px;height:'+containerHeight+'px;overflow:auto;z-index:10"></div>');
+          this.canvasWidth+'px;height:'+containerHeight+'px;overflow:auto;"></div>');
 
     D.insert(container, toolbar);
     D.insert(container, t);
@@ -299,10 +300,15 @@ Flotr.addPlugin('spreadsheet', {
 
     //Using below code, it prompts user to save file in IE10+ and other browsers
     csv = csv.replace(new RegExp(separator, 'g'), decodeURIComponent(separator)).replace(/%0A/g, '\n').replace(/%0D/g, '\r');
-    var csv_filename = (this.options.spreadsheet.title+'_data').replace(/\s+/g, '_').toLowerCase();
+    this.options.spreadsheet.csv_filename = (this.options.spreadsheet.csv_filename ?
+            (this.options.spreadsheet.csv_filename).replace(/\s+/g, '_') :
+            this.options.spreadsheet.csv_filename) || (
+                this.options.spreadsheet.title ?
+                (this.options.spreadsheet.title).replace(/\s+/g, '_').toLowerCase() + '_data.csv' :
+                'download.csv')
     if (navigator && navigator.msSaveBlob) {  // IE 10+
         var blob = new Blob([csv],{type: "text/csv;charset=utf-8;"});
-        navigator.msSaveBlob(blob, csv_filename)
+        navigator.msSaveBlob(blob, this.options.spreadsheet.csv_filename)
     } else {
         var link = document.createElement("a");
         if (link.download !== undefined) { // feature detection
@@ -315,7 +321,7 @@ Flotr.addPlugin('spreadsheet', {
                 url = "text/csv;charset=utf-8;" + encodeURIComponent(csv);
             }
             link.setAttribute("href", url);
-            link.setAttribute("download", csv_filename);
+            link.setAttribute("download", this.options.spreadsheet.csv_filename);
             link.style = "visibility:hidden";
             document.body.appendChild(link);
             link.click();

@@ -6069,8 +6069,7 @@ Flotr.addPlugin('download', {
       D.insert(this.el, image);
       this.saveImageElement = image;
     } else {
-      var u = navigator.userAgent,
-        isIE = (Flotr.isIE || (new RegExp(/(trident).+rv[:\s]([\w\.]+).+like\sgecko/i)).test(u) || (new RegExp(/(edge)\/((\d+)?[\w\.]+)/i)).test(u));
+      var u = navigator.userAgent, isIE = (Flotr.isIE || (new RegExp(/(trident).+rv[:\s]([\w\.]+).+like\sgecko/i)).test(u) || (new RegExp(/(edge)\/((\d+)?[\w\.]+)/i)).test(u));
 
       if (isIE) {
           return window.open('about:blank').document.body.innerHTML = '<img src="' + image.src+ '">';
@@ -7712,7 +7711,8 @@ Flotr.addPlugin('spreadsheet', {
     tickFormatter: null,
     initialTab: 'graph',
     sortFunc: null, // declared and initialized to null
-    xaxisLabel: null // delcared and initialized to null
+    xaxisLabel: null, // delcared and initialized to null
+    csv_filename: null // declared and set default value
   },
   /**
    * Builds the tabs in the DOM
@@ -7721,9 +7721,9 @@ Flotr.addPlugin('spreadsheet', {
     'flotr:afterconstruct': function(){
       // @TODO necessary?
       //this.el.select('.flotr-tabs-group,.flotr-datagrid-container').invoke('remove');
-      
+
       if (!this.options.spreadsheet.show) return;
-      
+
       var ss = this.spreadsheet,
         container = D.node('<div class="flotr-tabs-group" style="position:absolute;left:0px;width:'+this.canvasWidth+'px"></div>'),
         graph = D.node('<div style="float:left" class="flotr-tab selected">'+this.options.spreadsheet.tabGraphLabel+'</div>'),
@@ -7798,13 +7798,13 @@ Flotr.addPlugin('spreadsheet', {
   constructDataGrid: function(){
     // If the data grid has already been built, nothing to do here
     if (this.spreadsheet.datagrid) return this.spreadsheet.datagrid;
-    
+
     var s = this.series,
         datagrid = this.spreadsheet.loadDataGrid(),
         colgroup = ['<colgroup><col />'],
         buttonDownload, buttonSelect, t,
         xmode = this.options.xaxis && this.options.xaxis.mode; // Check if mode is time or normal
-    
+
     // First row : series' labels
     var html = ['<table class="flotr-datagrid"><tr class="first-row">'];
     html.push('<th>' + (this.options.spreadsheet.xaxisLabel || ' ') + '</th>'); // Set label
@@ -7832,7 +7832,7 @@ Flotr.addPlugin('spreadsheet', {
       }, this);
       html.push('</tr>');
     }, this);
-	html.push('</table>');
+    html.push('</table>');
     colgroup.push('</colgroup>');
     t = D.node(html.join(''));
 
@@ -7876,7 +7876,7 @@ Flotr.addPlugin('spreadsheet', {
 
     var containerHeight =this.canvasHeight - D.size(this.spreadsheet.tabsContainer).height-2,
         container = D.node('<div class="flotr-datagrid-container" style="position:absolute;left:0px;top:0px;width:'+
-          this.canvasWidth+'px;height:'+containerHeight+'px;overflow:auto;z-index:10"></div>');
+          this.canvasWidth+'px;height:'+containerHeight+'px;overflow:auto;"></div>');
 
     D.insert(container, toolbar);
     D.insert(container, t);
@@ -7885,7 +7885,7 @@ Flotr.addPlugin('spreadsheet', {
     this.spreadsheet.container = container;
 
     return t;
-  },  
+  },
   /**
    * Shows the specified tab, by its name
    * @todo make a tab manager (Flotr.Tabs)
@@ -7921,7 +7921,7 @@ Flotr.addPlugin('spreadsheet', {
       var selection, range, doc, win, node = this.spreadsheet.constructDataGrid();
 
       this.spreadsheet.showTab('data');
-      
+
       // deferred to be able to select the table
       setTimeout(function () {
         if ((doc = node.ownerDocument) && (win = doc.defaultView) &&
@@ -7933,7 +7933,7 @@ Flotr.addPlugin('spreadsheet', {
             selection.removeAllRanges();
             selection.addRange(range);
         }
-        else if (document.body && document.body.createTextRange && 
+        else if (document.body && document.body.createTextRange &&
                 (range = document.body.createTextRange())) {
             range.moveToElementText(node);
             range.select();
@@ -7955,18 +7955,18 @@ Flotr.addPlugin('spreadsheet', {
         options = this.options,
         dg = this.spreadsheet.loadDataGrid(),
         separator = encodeURIComponent(options.spreadsheet.csvFileSeparator);
-    
+
     if (options.spreadsheet.decimalSeparator === options.spreadsheet.csvFileSeparator) {
       throw "The decimal separator is the same as the column separator ("+options.spreadsheet.decimalSeparator+")";
     }
-    
+
     // The first row
     _.each(series, function(serie, i){
       csv += separator+'"'+(serie.label || String.fromCharCode(65+i)).replace(/\"/g, '\\"')+'"';
     });
 
     csv += "%0D%0A"; // \r\n
-    
+
     // For each row
     csv += _.reduce(dg, function(memo, row){
       var rowLabel = getRowLabel.call(this, row[0]) || '';
@@ -7980,10 +7980,15 @@ Flotr.addPlugin('spreadsheet', {
 
     //Using below code, it prompts user to save file in IE10+ and other browsers
     csv = csv.replace(new RegExp(separator, 'g'), decodeURIComponent(separator)).replace(/%0A/g, '\n').replace(/%0D/g, '\r');
-    var csv_filename = (this.options.spreadsheet.title+'_data').replace(/\s+/g, '_').toLowerCase();
+    this.options.spreadsheet.csv_filename = (this.options.spreadsheet.csv_filename ?
+            (this.options.spreadsheet.csv_filename).replace(/\s+/g, '_') :
+            this.options.spreadsheet.csv_filename) || (
+                this.options.spreadsheet.title ?
+                (this.options.spreadsheet.title).replace(/\s+/g, '_').toLowerCase() + '_data.csv' :
+                'download.csv')
     if (navigator && navigator.msSaveBlob) {  // IE 10+
         var blob = new Blob([csv],{type: "text/csv;charset=utf-8;"});
-        navigator.msSaveBlob(blob, csv_filename)
+        navigator.msSaveBlob(blob, this.options.spreadsheet.csv_filename)
     } else {
         var link = document.createElement("a");
         if (link.download !== undefined) { // feature detection
@@ -7996,7 +8001,7 @@ Flotr.addPlugin('spreadsheet', {
                 url = "text/csv;charset=utf-8;" + encodeURIComponent(csv);
             }
             link.setAttribute("href", url);
-            link.setAttribute("download", csv_filename);
+            link.setAttribute("download", this.options.spreadsheet.csv_filename);
             link.style = "visibility:hidden";
             document.body.appendChild(link);
             link.click();
