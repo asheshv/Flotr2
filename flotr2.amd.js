@@ -219,14 +219,15 @@ Flotr = {
       textAlign: 'left',
       textBaseline: 'bottom',
       weight: 1,
-      angle: 0
+      angle: 0,
+      fontFamily: 'sans-serif'
     }, style);
     
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(style.angle);
     ctx.fillStyle = style.color;
-    ctx.font = (style.weight > 1 ? "bold " : "") + (style.size*1.3) + "px sans-serif";
+    ctx.font = (style.weight > 1 ? "bold " : "") + (style.size*1.3) + "px " + style.fontFamily;
     ctx.textAlign = style.textAlign;
     ctx.textBaseline = style.textBaseline;
     ctx.fillText(text, 0, 0);
@@ -281,6 +282,7 @@ Flotr.defaultOptions = {
   HtmlText: true,          // => wether to draw the text using HTML or on the canvas
   fontColor: '#545454',    // => default font color
   fontSize: 7.5,           // => canvas' text font size
+  fontFamily: "sans-serif", // => canvas text font family
   resolution: 1,           // => resolution of the graph, to have printer-friendly graphs !
   parseFloat: true,        // => whether to preprocess data for floats (ie. if input is string)
   preventDefault: true,    // => preventDefault by default for mobile events.  Turn off to enable scroll.
@@ -763,7 +765,11 @@ Flotr.DOM = {
     var div = Flotr.DOM.create('div'), n;
     div.innerHTML = html;
     n = div.children[0];
-    div.innerHTML = '';
+    var u = navigator.userAgent,
+        isIE = (Flotr.isIE || (new RegExp(/(trident).+rv[:\s]([\w\.]+).+like\sgecko/i)).test(u) || (new RegExp(/(edge)\/((\d+)?[\w\.]+)/i)).test(u));
+    if(!isIE){
+        div.innerHTML = ''; // causing issue in rendering charts tabs and table content in IE9+.
+    }
     return n;
   },
   /**
@@ -885,13 +891,9 @@ F.EventAdapter = {
         y : e.pageY
       };
     } else if (e.clientX || e.clientY) {
-      var
-        d = document,
-        b = d.body,
-        de = d.documentElement;
       return {
-        x: e.clientX + b.scrollLeft + de.scrollLeft,
-        y: e.clientY + b.scrollTop + de.scrollTop
+        x: e.clientX + ((window.pageXOffset !== undefined) ? window.pageXOffset : (document.documentElement || document.body.parentNode || document.body).scrollLeft),
+        y: e.clientY + ((window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop)
       };
     }
   }
@@ -971,11 +973,12 @@ Text.prototype = {
     style = _.extend({
       size: F.defaultOptions.fontSize,
       weight: 1,
-      angle: 0
+      angle: 0,
+      fontFamiliy: 'sans-serif'
     }, style);
 
     context.save();
-    context.font = (style.weight > 1 ? "bold " : "") + (style.size*1.3) + "px sans-serif";
+    context.font = (style.weight > 1 ? "bold " : "") + (style.size*1.3) + "px " + style.fontFamily;
     metrics = context.measureText(text);
     context.restore();
 
@@ -1150,17 +1153,17 @@ Graph.prototype = {
 
     // Title height
     dim = T.dimensions(
-      options.title,
+      options.title || 'ABC',
       {size: options.fontSize*1.5},
       'font-size:1em;font-weight:bold;',
       'flotr-title'
     );
-	// We will set the minimun title Height to 5.
-	// So that - it will show the y-axis labels properly
-	if (options.title)
-		this.titleHeight = dim.height;
-	else
-		this.titleHeight = 5;
+    // We will set the minimun title Height to 5.
+    // So that - it will show the y-axis labels properly
+    if (options.title)
+        this.titleHeight = dim.height;
+    else
+        this.titleHeight = (options.fontSize / flotr.defaultOptions.fontSize) * 5;
 
     // Subtitle height
     dim = T.dimensions(
@@ -1324,7 +1327,9 @@ Graph.prototype = {
       pointer = E.eventPointer(e),
       dx = pointer.x - lastMousePos.pageX,
       dy = pointer.y - lastMousePos.pageY,
-      r, rx, ry;
+      r, rx, ry,
+      sL = ((window.pageXOffset !== undefined) ? window.pageXOffset : (de || b.parentNode || b).scrollLeft),
+      sT = ((window.pageYOffset !== undefined) ? window.pageYOffset : (de || b.parentNode || b).scrollTop);
 
     if ('ontouchstart' in this.el) {
       r = D.position(this.overlay);
@@ -1332,8 +1337,8 @@ Graph.prototype = {
       ry = pointer.y - r.top - plotOffset.top;
     } else {
       r = this.overlay.getBoundingClientRect();
-      rx = e.clientX - r.left - plotOffset.left - b.scrollLeft - de.scrollLeft;
-      ry = e.clientY - r.top - plotOffset.top - b.scrollTop - de.scrollTop;
+      rx = e.clientX - r.left - plotOffset.left - sL;
+      ry = e.clientY - r.top - plotOffset.top - sT;
     }
 
     return {
@@ -1507,7 +1512,7 @@ Graph.prototype = {
       touchendHandler = _.bind(function (e) {
         touchend = true;
         E.stopObserving(document, 'touchend', touchendHandler);
-        E.fire(el, 'flotr:mouseup', [event, this]);
+        E.fire(el, 'flotr:mouseup', [e, this]);
         this.multitouches = null;
 
         if (!movement) {
@@ -1524,7 +1529,7 @@ Graph.prototype = {
           this.multitouches = e.touches;
         }
 
-        E.fire(el, 'flotr:mousedown', [event, this]);
+        E.fire(el, 'flotr:mousedown', [e, this]);
         this.observe(document, 'touchend', touchendHandler);
       }, this));
 
@@ -1542,7 +1547,7 @@ Graph.prototype = {
           this.multitouches = e.touches;
         } else {
           if (!touchend) {
-            E.fire(el, 'flotr:mousemove', [event, pos, this]);
+            E.fire(el, 'flotr:mousemove', [e, pos, this]);
           }
         }
         this.lastMousePos = pos;
@@ -1942,14 +1947,14 @@ Axis.prototype = {
 
     this.maxLabel = T.dimensions(
       maxLabel,
-      {size:options.fontSize, angle: Flotr.toRad(this.options.labelsAngle)},
+      {size:options.fontSize*1.2, fontFamily: options.fontFamily, angle: Flotr.toRad(this.options.labelsAngle)},
       'font-size:smaller;',
       'flotr-grid-label'
     );
 
     this.titleSize = T.dimensions(
       this.options.title, 
-      {size:options.fontSize*1.2, angle: Flotr.toRad(this.options.titleAngle)},
+      {size:options.fontSize*1.2, fontFamily: options.fontFamily, angle: Flotr.toRad(this.options.titleAngle)},
       'font-weight:bold;',
       'flotr-axis-title'
     );
@@ -2265,8 +2270,10 @@ Flotr.addType('lines', {
         y1 = yScale(data[i][1] + stack1);
         y2 = yScale(data[i+1][1] + stack2);
         if (incStack) {
+          data[i].y0 = stack1;
           stack.values[data[i][0]] = data[i][1] + stack1;
           if (i == length-1) {
+            data[i+1].y0 = stack2;
             stack.values[data[i+1][0]] = data[i+1][1] + stack2;
           }
         }
@@ -2885,7 +2892,6 @@ Flotr.addType('candles', {
     upFillColor: '#00A8F0',// => up sticks fill color
     downFillColor: '#CB4B4B',// => down sticks fill color
     fillOpacity: 0.5,      // => opacity of the fill color, set to 1 for a solid fill, 0 hides the fill
-    // TODO Test this barcharts option.
     barcharts: false       // => draw as barcharts (not standard bars but financial barcharts)
   },
 
@@ -2920,7 +2926,7 @@ Flotr.addType('candles', {
       color,
       datum, x, y,
       open, high, low, close,
-      left, right, bottom, top, bottom2, top2,
+      left, right, bottom, top, bottom2, top2, reverseLines,
       i;
 
     if (data.length < 1) return;
@@ -2948,7 +2954,6 @@ Flotr.addType('candles', {
       color = options[open > close ? 'downFillColor' : 'upFillColor'];
 
       // Fill the candle.
-      // TODO Test the barcharts option
       if (options.fill && !options.barcharts) {
         context.fillStyle = 'rgba(0,0,0,0.05)';
         context.fillRect(left + shadowSize, top2 + shadowSize, right - left, bottom2 - top2);
@@ -2967,19 +2972,15 @@ Flotr.addType('candles', {
         context.strokeStyle = color;
         context.beginPath();
 
-        // TODO Again with the bartcharts
         if (options.barcharts) {
-          
-          context.moveTo(x, Math.floor(top + width));
-          context.lineTo(x, Math.floor(bottom + width));
-          
-          y = Math.floor(open + width) + 0.5;
-          context.moveTo(Math.floor(left) + pixelOffset, y);
-          context.lineTo(x, y);
-          
-          y = Math.floor(close + width) + 0.5;
-          context.moveTo(Math.floor(right) + pixelOffset, y);
-          context.lineTo(x, y);
+          context.moveTo(x, Math.floor(top + lineWidth));
+          context.lineTo(x, Math.floor(bottom + lineWidth));
+
+          reverseLines = open < close;
+          context.moveTo(reverseLines ? right : left, Math.floor(top2 + lineWidth));
+          context.lineTo(x, Math.floor(top2 + lineWidth));
+          context.moveTo(x, Math.floor(bottom2 + lineWidth));
+          context.lineTo(reverseLines ? left : right, Math.floor(bottom2 + lineWidth));
         } else {
           context.strokeRect(left, top2 + lineWidth, right - left, bottom2 - top2);
           context.moveTo(x, Math.floor(top2 + lineWidth));
@@ -3428,7 +3429,7 @@ Flotr.addType('markers', {
     if (isImage(label))
       context.drawImage(label, parseInt(left+margin, 10), parseInt(top+margin, 10));
     else
-      Flotr.drawText(context, label, left+margin, top+margin, {textBaseline: 'top', textAlign: 'left', size: options.fontSize, color: options.color});
+      Flotr.drawText(context, label, left+margin, top+margin, {textBaseline: 'top', textAlign: 'left', size: options.fontSize, color: options.color, fontFamily: options.fontFamily});
   }
 });
 
@@ -3542,6 +3543,13 @@ Flotr.addType('pie', {
     context.lineWidth = lineWidth;
     context.strokeStyle = color;
     context.stroke();
+
+    style = {
+      size : options.fontSize * 1.2,
+      color : options.fontColor,
+      weight : 1.5,
+      fontFamily: options.fontFamily
+    };
 
     if (label) {
       if (options.htmlText || !options.textEnabled) {
@@ -4110,6 +4118,12 @@ Flotr.addPlugin('download', {
       D.insert(this.el, image);
       this.saveImageElement = image;
     } else {
+      var u = navigator.userAgent, isIE = (Flotr.isIE || (new RegExp(/(trident).+rv[:\s]([\w\.]+).+like\sgecko/i)).test(u) || (new RegExp(/(edge)\/((\d+)?[\w\.]+)/i)).test(u));
+
+      if (isIE) {
+          return window.open('about:blank').document.body.innerHTML = '<img src="' + image.src+ '">';
+      }
+
       return window.open(image.src);
     }
   },
@@ -4584,6 +4598,8 @@ Flotr.addPlugin('hit', {
 
         x = data[j][0];
         y = data[j][1];
+        // Add stack offset if exists
+        if (data[j].y0) y += data[j].y0;
 
         if (x === null || y === null) continue;
 
@@ -5094,7 +5110,8 @@ Flotr.addPlugin('labels', {
       style = {
         color        : axis.options.color || options.grid.color,
         angle        : Flotr.toRad(axis.options.labelsAngle),
-        textBaseline : 'middle'
+        textBaseline : 'middle',
+        fontFamily: options.fontFamily
       };
 
       for (i = 0; i < ticks.length &&
@@ -5127,7 +5144,9 @@ Flotr.addPlugin('labels', {
         color        : axis.options.color || options.grid.color,
         textAlign    : textAlign,
         textBaseline : textBaseline,
-        angle : Flotr.toRad(axis.options.labelsAngle)
+        angle : Flotr.toRad(axis.options.labelsAngle),
+        fontFamily: options.fontFamily,
+        size: options.fontSize
       };
       style = Flotr.getBestTextAlign(style.angle, style);
 
@@ -5297,7 +5316,8 @@ Flotr.addPlugin('legend', {
           labelMaxWidth = 0,
           style = {
             size: options.fontSize*1.1,
-            color: options.grid.color
+            color: options.grid.color,
+            fontFamily: options.fontFamily
           };
 
       // We calculate the labels' max width
@@ -5469,10 +5489,10 @@ Flotr.addPlugin('selectable_legend', {
 			options = this.options,
 			legend = options.selectable_legend,
 			fragments = [],
-			rowStarted = false, 
+			rowStarted = false,
 			ctx = this.ctx,
 			itemCount = _.filter(series, function(s) {return (s.label);}).length,
-			p = legend.position, 
+			p = legend.position,
 			m = legend.margin,
 			opacity = legend.backgroundOpacity,
 			i, label, color;
@@ -5507,7 +5527,7 @@ Flotr.addPlugin('selectable_legend', {
 
 			for(i = 0; i < series.length; ++i){
 				if(!series[i].label) continue;
-				
+
 				if(i % legend.noColumns === 0){
 					fragments.push(rowStarted ? '</tr><tr>' : '<tr>');
 					rowStarted = true;
@@ -5519,7 +5539,7 @@ Flotr.addPlugin('selectable_legend', {
 
 				label = legend.labelFormatter(s.label);
 				color = 'background-color:' + ((s.bars && s.bars.show && s.bars.fillColor && s.bars.fill) ? s.bars.fillColor : s.color) + ';';
-				
+
 				if (legend.callback) {
 					fragments.push(
 						'<td><input type="checkbox" class="flotr-legend-check-box" data-id="',
@@ -5542,7 +5562,7 @@ Flotr.addPlugin('selectable_legend', {
 				fragments.push('</td>');
 			}
 			if(rowStarted) fragments.push('</tr>');
-				
+
 			if(fragments.length > 0){
 				var table = '<table style="font-size:smaller;color:' + options.grid.color + '">' + fragments.join('') + '</table>';
 				$(legend.container).html(table);
@@ -5738,7 +5758,10 @@ Flotr.addPlugin('spreadsheet', {
     csvFileSeparator: ',',
     decimalSeparator: '.',
     tickFormatter: null,
-    initialTab: 'graph'
+    initialTab: 'graph',
+    sortFunc: null, // declared and initialized to null
+    xaxisLabel: null, // delcared and initialized to null
+    csv_filename: null // declared and set default value
   },
   /**
    * Builds the tabs in the DOM
@@ -5747,9 +5770,9 @@ Flotr.addPlugin('spreadsheet', {
     'flotr:afterconstruct': function(){
       // @TODO necessary?
       //this.el.select('.flotr-tabs-group,.flotr-datagrid-container').invoke('remove');
-      
+
       if (!this.options.spreadsheet.show) return;
-      
+
       var ss = this.spreadsheet,
         container = D.node('<div class="flotr-tabs-group" style="position:absolute;left:0px;width:'+this.canvasWidth+'px"></div>'),
         graph = D.node('<div style="float:left" class="flotr-tab selected">'+this.options.spreadsheet.tabGraphLabel+'</div>'),
@@ -5785,14 +5808,16 @@ Flotr.addPlugin('spreadsheet', {
     if (this.seriesData) return this.seriesData;
 
     var s = this.series,
-        rows = {};
+        rows = {},
+        xmode = this.options.xaxis && this.options.xaxis.mode; // Check if mode is time or normal
 
     /* The data grid is a 2 dimensions array. There is a row for each X value.
      * Each row contains the x value and the corresponding y value for each serie ('undefined' if there isn't one)
     **/
     _.each(s, function(serie, i){
       _.each(serie.data, function (v) {
-        var x = v[0],
+        // Convert date time format to mm/dd/yyyy
+        var x = (xmode === 'time' ? v[0].toLocaleString() : v[0]),
             y = v[1],
             r = rows[x];
         if (r) {
@@ -5806,10 +5831,12 @@ Flotr.addPlugin('spreadsheet', {
       });
     });
 
-    // The data grid is sorted by x value
-    this.seriesData = _.sortBy(rows, function(row, x){
-      return parseInt(x, 10);
-    });
+    // The data grid is sorted by x value.
+    var sortFunc = (_.isFunction(this.options.spreadsheet.sortFunc) && this.options.spreadsheet.sortFunc) || function(row, x) {
+        return parseInt(x, 10);
+    };
+
+    this.seriesData = _.sortBy(rows, sortFunc);
     return this.seriesData;
   },
   /**
@@ -5820,16 +5847,16 @@ Flotr.addPlugin('spreadsheet', {
   constructDataGrid: function(){
     // If the data grid has already been built, nothing to do here
     if (this.spreadsheet.datagrid) return this.spreadsheet.datagrid;
-    
+
     var s = this.series,
         datagrid = this.spreadsheet.loadDataGrid(),
         colgroup = ['<colgroup><col />'],
         buttonDownload, buttonSelect, t,
-		xmode = this.options.xaxis.mode;
-    
+        xmode = this.options.xaxis && this.options.xaxis.mode; // Check if mode is time or normal
+
     // First row : series' labels
     var html = ['<table class="flotr-datagrid"><tr class="first-row">'];
-    html.push('<th></th>');
+    html.push('<th>' + (this.options.spreadsheet.xaxisLabel || ' ') + '</th>'); // Set label
     _.each(s, function(serie,i){
       html.push('<th scope="col">'+(serie.label || String.fromCharCode(65+i))+'</th>');
       colgroup.push('<col />');
@@ -5846,15 +5873,15 @@ Flotr.addPlugin('spreadsheet', {
             content = (!_.isUndefined(value) ? Math.round(value*100000)/100000 : '');
         if (i === 0) {
           tag = 'th';
-          var label = getRowLabel.call(this, content);
-          if (label) content = (xmode === 'time' ? value.toLocaleString() : h);
+          var l = (xmode === 'time' ? value.toLocaleString() : getRowLabel.call(this, content));
+          if (l) content = l;
         }
 
         html.push('<'+tag+(tag=='th'?' scope="row"':'')+'>'+content+'</'+tag+'>');
       }, this);
       html.push('</tr>');
     }, this);
-	html.push('</table>');
+    html.push('</table>');
     colgroup.push('</colgroup>');
     t = D.node(html.join(''));
 
@@ -5884,7 +5911,7 @@ Flotr.addPlugin('spreadsheet', {
       '</button>');
 
     buttonSelect = D.node(
-      '<button type="button" class="flotr-datagrid-toolbar-button">' +
+      '<button type="button" class="flotr-datagrid-toolbar-button btn-hidden">' + // Hide selectall button
       this.options.spreadsheet.toolbarSelectAll+
       '</button>');
 
@@ -5898,7 +5925,7 @@ Flotr.addPlugin('spreadsheet', {
 
     var containerHeight =this.canvasHeight - D.size(this.spreadsheet.tabsContainer).height-2,
         container = D.node('<div class="flotr-datagrid-container" style="position:absolute;left:0px;top:0px;width:'+
-          this.canvasWidth+'px;height:'+containerHeight+'px;overflow:auto;z-index:10"></div>');
+          this.canvasWidth+'px;height:'+containerHeight+'px;overflow:auto;"></div>');
 
     D.insert(container, toolbar);
     D.insert(container, t);
@@ -5907,7 +5934,7 @@ Flotr.addPlugin('spreadsheet', {
     this.spreadsheet.container = container;
 
     return t;
-  },  
+  },
   /**
    * Shows the specified tab, by its name
    * @todo make a tab manager (Flotr.Tabs)
@@ -5943,19 +5970,19 @@ Flotr.addPlugin('spreadsheet', {
       var selection, range, doc, win, node = this.spreadsheet.constructDataGrid();
 
       this.spreadsheet.showTab('data');
-      
+
       // deferred to be able to select the table
       setTimeout(function () {
-        if ((doc = node.ownerDocument) && (win = doc.defaultView) && 
-            win.getSelection && doc.createRange && 
-            (selection = window.getSelection()) && 
+        if ((doc = node.ownerDocument) && (win = doc.defaultView) &&
+            win.getSelection && doc.createRange &&
+            (selection = window.getSelection()) &&
             selection.removeAllRanges) {
             range = doc.createRange();
             range.selectNode(node);
             selection.removeAllRanges();
             selection.addRange(range);
         }
-        else if (document.body && document.body.createTextRange && 
+        else if (document.body && document.body.createTextRange &&
                 (range = document.body.createTextRange())) {
             range.moveToElementText(node);
             range.select();
@@ -5969,23 +5996,26 @@ Flotr.addPlugin('spreadsheet', {
    * Converts the data into CSV in order to download a file
    */
   downloadCSV: function(){
-    var csv = '',
+    // Check and assign xaxisLabel label if it is not empty
+    var csv = (this.options.spreadsheet.xaxisLabel ?
+                '"'+(this.options.spreadsheet.xaxisLabel).replace(/\"/g, '\\"')+'"' :
+                ''),
         series = this.series,
         options = this.options,
         dg = this.spreadsheet.loadDataGrid(),
         separator = encodeURIComponent(options.spreadsheet.csvFileSeparator);
-    
+
     if (options.spreadsheet.decimalSeparator === options.spreadsheet.csvFileSeparator) {
       throw "The decimal separator is the same as the column separator ("+options.spreadsheet.decimalSeparator+")";
     }
-    
+
     // The first row
     _.each(series, function(serie, i){
       csv += separator+'"'+(serie.label || String.fromCharCode(65+i)).replace(/\"/g, '\\"')+'"';
     });
 
     csv += "%0D%0A"; // \r\n
-    
+
     // For each row
     csv += _.reduce(dg, function(memo, row){
       var rowLabel = getRowLabel.call(this, row[0]) || '';
@@ -5997,11 +6027,38 @@ Flotr.addPlugin('spreadsheet', {
       return memo + rowLabel+separator+numbers+"%0D%0A"; // \t and \r\n
     }, '', this);
 
-    if (Flotr.isIE && Flotr.isIE < 9) {
-      csv = csv.replace(new RegExp(separator, 'g'), decodeURIComponent(separator)).replace(/%0A/g, '\n').replace(/%0D/g, '\r');
-      window.open().document.write(csv);
+    //Using below code, it prompts user to save file in IE10+ and other browsers
+    csv = csv.replace(new RegExp(separator, 'g'), decodeURIComponent(separator)).replace(/%0A/g, '\n').replace(/%0D/g, '\r');
+    this.options.spreadsheet.csv_filename = (this.options.spreadsheet.csv_filename ?
+            (this.options.spreadsheet.csv_filename).replace(/\s+/g, '_') :
+            this.options.spreadsheet.csv_filename) || (
+                this.options.spreadsheet.title ?
+                (this.options.spreadsheet.title).replace(/\s+/g, '_').toLowerCase() + '_data.csv' :
+                'download.csv')
+    if (navigator && navigator.msSaveBlob) {  // IE 10+
+        var blob = new Blob([csv],{type: "text/csv;charset=utf-8;"});
+        navigator.msSaveBlob(blob, this.options.spreadsheet.csv_filename)
+    } else {
+        var link = document.createElement("a");
+        if (link.download !== undefined) { // feature detection
+            // Browsers that support HTML5 download attribute
+            var url;
+            if (Blob && URL && URL.createObjectURL) {
+                var blob = new Blob([csv],{type: "text/csv;charset=utf-8;"});
+                url = URL.createObjectURL(blob);
+            } else {
+                url = "text/csv;charset=utf-8;" + encodeURIComponent(csv);
+            }
+            link.setAttribute("href", url);
+            link.setAttribute("download", this.options.spreadsheet.csv_filename);
+            link.style = "visibility:hidden";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } else {
+            window.open('about:blank').document.write(csv);
+        }
     }
-    else window.open('data:text/csv,'+csv);
   }
 });
 })();
@@ -6030,7 +6087,8 @@ Flotr.addPlugin('titles', {
       var style = {
         size: options.fontSize,
         color: options.grid.color,
-        textAlign: 'center'
+        textAlign: 'center',
+        fontFamily: options.fontFamily
       };
       
       // Add subtitle
