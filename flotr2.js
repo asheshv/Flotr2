@@ -3867,16 +3867,13 @@ Axis.prototype = {
       // Make sure we don't go below zero if all values are positive.
       if(axis.min < 0 && axis.datamin >= 0) axis.min = 0;
       axis.min = axis.tickSize * Math.floor(axis.min / axis.tickSize);
-      axis.min = axis.min - (axis.tickSize * 0.01);
     }
 
     if(o.max === null && o.autoscale){
       axis.max += axis.tickSize * margin;
       if(axis.max > 0 && axis.datamax <= 0 && axis.datamax != axis.datamin) axis.max = 0;
       axis.max = axis.tickSize * Math.ceil(axis.max / axis.tickSize);
-      axis.max = (axis.tickSize * 0.01) + axis.max;
     }
-    axis.max = (axis.tickSize || 0) * 0.02 + axis.max;
 
     if (axis.min == axis.max) axis.max = axis.min + 1;
   },
